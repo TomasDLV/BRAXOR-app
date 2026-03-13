@@ -1,262 +1,375 @@
-import Link from "next/link";
+"use client";
+
 import Image from "next/image";
+import Link from "next/link";
+import { motion } from "framer-motion";
+
+// ─── Animation Variants ───────────────────────────────────────────────────────
+
+const fadeUp = {
+  hidden: { opacity: 0, y: 40 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: { duration: 0.6, ease: "easeOut" },
+  },
+};
+
+const staggerContainer = {
+  hidden: {},
+  visible: { transition: { staggerChildren: 0.1 } },
+};
+
+const wordVariant = {
+  hidden: { opacity: 0, y: 35, filter: "blur(4px)" },
+  visible: {
+    opacity: 1,
+    y: 0,
+    filter: "blur(0px)",
+    transition: { duration: 0.55, ease: "easeOut" },
+  },
+};
+
+// ─── Data ─────────────────────────────────────────────────────────────────────
+
+const CATEGORIES = [
+  {
+    title: ["Llantas &", "Neumáticos"],
+    href: "/catalogo/llantas",
+    img: "/images/cat-llantas.png",
+  },
+  {
+    title: ["Kits de", "Suspensión"],
+    href: "/catalogo/suspension",
+    img: "/images/cat-suspension.png",
+  },
+  {
+    title: ["Defensas &", "Estribos"],
+    href: "/catalogo/defensas",
+    img: "/images/cat-defensas.png",
+  },
+  {
+    title: ["Iluminación", "LED"],
+    href: "/catalogo/iluminacion",
+    img: "/images/cat-iluminacion.png",
+  },
+];
+
+const BRANDS = ["BFGoodrich", "Warn", "ARB", "Baratec", "Method Race Wheels"];
+
+const HERO_WORDS = ["EQUIPAMIENTO", "QUE", "MARCA", "LA", "DIFERENCIA."];
+
+// ─── Page ─────────────────────────────────────────────────────────────────────
 
 export default function Home() {
   return (
-    <main className="flex flex-col w-full min-h-screen bg-[#0a0a0a]">
-      
-      {/* NUEVO: SEPARADOR METÁLICO SUPERIOR (Justo debajo del Navbar) */}
-      <div className="relative w-full h-4 md:h-6 z-30 shadow-[0_10px_15px_rgba(0,0,0,0.8)]">
-        <Image 
-          src="/images/metal-divider-final.png" 
-          alt="Separador metálico superior" 
-          fill 
-          className="object-cover" 
-          priority
-        />
-      </div>
+    <main className="flex flex-col w-full min-h-screen bg-[#0a0a0a] overflow-x-hidden">
+      <MetalDivider />
 
-      {/* 1. HERO SECTION (Limpio y con el texto posicionado más arriba) */}
-      {/* Cambiamos justify-center por justify-start y agregamos pt-16 para empujar el texto hacia arriba */}
-      <section className="relative w-full h-[550px] md:h-[650px] flex flex-col items-center justify-start pt-16 md:pt-24 text-center px-4 overflow-hidden">
-        
-        {/* Tu imagen de fondo (Ahora 100% visible, sin opacidad que la oscurezca) */}
-        <Image 
+      {/* ── 1. HERO ── */}
+      <section className="relative w-full h-[540px] md:h-[660px] flex flex-col items-center justify-start pt-14 md:pt-24 text-center px-4 overflow-hidden">
+        {/* Background */}
+        <Image
           src="/images/hero-bg.png"
           alt="Camionetas Bräxor Off-Road"
           fill
           priority
-          className="object-cover object-center z-0"
+          className="object-cover object-center z-0 scale-105"
         />
+        {/* Gradient overlay */}
+        <div className="absolute inset-0 bg-gradient-to-b from-black/75 via-black/15 to-[#0a0a0a] z-10" />
+        {/* Left/right vignette */}
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_transparent_40%,_rgba(0,0,0,0.55)_100%)] z-10" />
 
-        {/* Dejamos un degradado sutil arriba y abajo para que el texto blanco no se pierda */}
-        <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-transparent to-[#0a0a0a] z-10"></div>
-        
-        {/* Contenido (Texto y Botón) */}
-        <div className="relative z-20 flex flex-col items-center">
-          <h1 className="text-4xl md:text-6xl font-black text-white tracking-tighter uppercase mb-2 drop-shadow-[0_5px_5px_rgba(0,0,0,0.8)]">
-            Equipamiento que <br /> marca la diferencia.
-          </h1>
-          <p className="text-zinc-300 text-lg md:text-xl mb-8 font-medium drop-shadow-md">
-            Encontrá el repuesto exacto para tu camioneta.
-          </p>
-          
-          <button className="bg-yellow-500 hover:bg-yellow-400 text-black font-extrabold py-4 px-10 rounded-md uppercase tracking-wide transition-all shadow-[0_0_20px_rgba(234,179,8,0.4)] hover:shadow-[0_0_30px_rgba(234,179,8,0.6)] hover:-translate-y-1">
-            EXPLORAR CATÁLOGO
-          </button>
+        <div className="relative z-20 flex flex-col items-center max-w-5xl mx-auto">
+          {/* Staggered title — word by word */}
+          <motion.div
+            className="flex flex-wrap justify-center gap-x-[0.35em] gap-y-1 mb-4 leading-none"
+            variants={staggerContainer}
+            initial="hidden"
+            animate="visible"
+          >
+            {HERO_WORDS.map((word, i) => (
+              <motion.span
+                key={i}
+                variants={wordVariant}
+                className="text-[2.6rem] md:text-[4.5rem] lg:text-[5.5rem] font-black text-white tracking-tighter uppercase drop-shadow-[0_6px_14px_rgba(0,0,0,0.95)]"
+              >
+                {word}
+              </motion.span>
+            ))}
+          </motion.div>
+
+          {/* Subtitle */}
+          <motion.p
+            initial={{ opacity: 0, y: 18 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.85, duration: 0.5 }}
+            className="text-zinc-300 text-base md:text-lg mb-9 font-medium drop-shadow-md"
+          >
+            Probá y visualizá tus piezas en tiempo real.
+          </motion.p>
+
+          {/* CTA Button */}
+          <motion.div
+            initial={{ opacity: 0, scale: 0.88 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ delay: 1.05, duration: 0.45, ease: "backOut" }}
+          >
+            <Link href="/catalogo">
+              <motion.button
+                whileHover={{
+                  scale: 1.06,
+                  boxShadow: "0 0 45px rgba(234,179,8,0.75)",
+                }}
+                whileTap={{ scale: 0.96 }}
+                className="bg-yellow-500 text-black font-extrabold py-4 px-14 rounded-md uppercase tracking-widest text-sm md:text-base shadow-[0_0_22px_rgba(234,179,8,0.45)] cursor-pointer"
+              >
+                Explorar Catálogo
+              </motion.button>
+            </Link>
+          </motion.div>
         </div>
       </section>
 
-      {/* SEPARADOR METÁLICO SUPERIOR (con sombras profundas personalizadas) */}
-      {/* Agregamos la clase drop-shadow personalizada aquí abajo */}
-      <div className="relative w-full h-4 md:h-6 z-30 drop-shadow-[0px_-2px_4px_rgba(0,0,0,0.7)_0px_8px_16px_rgba(0,0,0,0.9)] shadow-[0_10px_15px_rgba(0,0,0,0.8)]">
-        <Image 
-          src="/images/metal-divider-final.png" 
-          alt="Separador metálico superior" 
-          fill 
-          className="object-cover" 
-          priority
-        />
-      </div>
-      {/* 2. GRILLA DE CATEGORÍAS PRINCIPALES */}
-      {/* Añadimos un fondo con un patrón muy sutil (carbon fiber o textura oscura) para dar el efecto del mockup */}
-      <section className="relative w-full py-20 flex flex-col items-center bg-[#0d0d0d]">
-        
-        {/* Patrón de fondo opcional (si quieres que no sea liso oscuro) */}
-        <div className="absolute inset-0 opacity-[0.03] bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] pointer-events-none"></div>
+      <MetalDivider />
 
-        <div className="relative z-10 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          {/* Grilla: 1 columna en móvil, 2 en PC */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8">
-            
-            {/* Tarjeta 1: Llantas */}
-            <Link href="/catalogo/llantas" className="group block h-72 md:h-80 bg-gradient-to-br from-[#1c1c1c] to-[#111] rounded-[1.5rem] p-8 border border-zinc-800/80 hover:border-zinc-600 transition-all duration-300 relative overflow-hidden shadow-2xl hover:shadow-[0_0_30px_rgba(255,255,255,0.05)]">
-              <h3 className="text-2xl md:text-3xl font-bold uppercase text-white leading-tight w-2/3 tracking-wide drop-shadow-md">
-                Llantas &<br/>Neumáticos
-              </h3>
-              {/* Contenedor de la imagen (Ajustar w y h según tu imagen png) */}
-              <div className="absolute -bottom-8 -right-8 w-64 h-64 md:w-80 md:h-80 group-hover:scale-105 transition-transform duration-500 ease-out">
-                {/* REEMPLAZAR ESTE DIV POR TU IMAGEN REAL:
-                  <Image src="/images/cat-llantas.png" alt="Llantas" fill className="object-contain" />
-                */}
-                <div className="w-full h-full bg-zinc-800/50 rounded-full blur-xl absolute inset-0 mix-blend-overlay"></div>
-                <div className="w-full h-full border-4 border-dashed border-zinc-700/30 rounded-full flex items-center justify-center text-zinc-600 font-bold uppercase text-sm rotate-[-15deg]">[Imagen Llantas]</div>
-              </div>
-            </Link>
+      {/* ── 2. CATEGORY GRID ── */}
+      <section className="relative w-full py-14 md:py-20 bg-[#0d0d0d]">
+        {/* Carbon texture */}
+        <div className="absolute inset-0 opacity-[0.035] bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] pointer-events-none" />
 
-            {/* Tarjeta 2: Suspensión */}
-            <Link href="/catalogo/suspension" className="group block h-72 md:h-80 bg-gradient-to-br from-[#1c1c1c] to-[#111] rounded-[1.5rem] p-8 border border-zinc-800/80 hover:border-zinc-600 transition-all duration-300 relative overflow-hidden shadow-2xl hover:shadow-[0_0_30px_rgba(255,255,255,0.05)]">
-              <h3 className="text-2xl md:text-3xl font-bold uppercase text-white leading-tight w-2/3 tracking-wide drop-shadow-md">
-                Kits de<br/>Suspensión
-              </h3>
-              <div className="absolute bottom-4 -right-4 w-56 h-56 md:w-72 md:h-72 group-hover:scale-105 transition-transform duration-500 ease-out">
-                 {/* REEMPLAZAR ESTE DIV POR TU IMAGEN REAL:
-                  <Image src="/images/cat-suspension.png" alt="Suspensión" fill className="object-contain" />
-                */}
-                 <div className="w-full h-full bg-zinc-800/50 rounded-lg blur-xl absolute inset-0 mix-blend-overlay"></div>
-                <div className="w-full h-full border-4 border-dashed border-zinc-700/30 rounded-lg flex items-center justify-center text-zinc-600 font-bold uppercase text-sm rotate-[10deg]">[Imagen Amortiguadores]</div>
-              </div>
-            </Link>
-
-            {/* Tarjeta 3: Defensas */}
-            <Link href="/catalogo/defensas" className="group block h-72 md:h-80 bg-gradient-to-br from-[#1c1c1c] to-[#111] rounded-[1.5rem] p-8 border border-zinc-800/80 hover:border-zinc-600 transition-all duration-300 relative overflow-hidden shadow-2xl hover:shadow-[0_0_30px_rgba(255,255,255,0.05)]">
-              <h3 className="text-2xl md:text-3xl font-bold uppercase text-white leading-tight w-2/3 tracking-wide drop-shadow-md">
-                Defensas &<br/>Estribos
-              </h3>
-              <div className="absolute bottom-6 left-1/2 -translate-x-1/2 w-[90%] h-40 md:h-48 group-hover:translate-y-[-10px] transition-transform duration-500 ease-out">
-                 {/* REEMPLAZAR ESTE DIV POR TU IMAGEN REAL:
-                  <Image src="/images/cat-defensas.png" alt="Defensas" fill className="object-contain object-bottom" />
-                */}
-                 <div className="w-full h-full bg-zinc-800/50 rounded-xl blur-xl absolute inset-0 mix-blend-overlay"></div>
-                <div className="w-full h-full border-4 border-dashed border-zinc-700/30 rounded-xl flex items-center justify-center text-zinc-600 font-bold uppercase text-sm">[Imagen Defensa]</div>
-              </div>
-            </Link>
-
-            {/* Tarjeta 4: Iluminación */}
-            <Link href="/catalogo/iluminacion" className="group block h-72 md:h-80 bg-gradient-to-br from-[#1c1c1c] to-[#111] rounded-[1.5rem] p-8 border border-zinc-800/80 hover:border-zinc-600 transition-all duration-300 relative overflow-hidden shadow-2xl hover:shadow-[0_0_30px_rgba(255,255,255,0.05)]">
-              <h3 className="text-2xl md:text-3xl font-bold uppercase text-white leading-tight w-2/3 tracking-wide drop-shadow-md">
-                Iluminación<br/>LED
-              </h3>
-              <div className="absolute bottom-6 right-6 w-48 h-32 md:w-64 md:h-48 group-hover:scale-105 transition-transform duration-500 ease-out">
-                 {/* REEMPLAZAR ESTE DIV POR TU IMAGEN REAL:
-                  <Image src="/images/cat-iluminacion.png" alt="Iluminación" fill className="object-contain object-bottom right-0" />
-                */}
-                 <div className="w-full h-full bg-zinc-800/50 rounded-xl blur-lg absolute inset-0 mix-blend-overlay"></div>
-                <div className="w-full h-full border-4 border-dashed border-zinc-700/30 rounded-xl flex items-center justify-center text-zinc-600 font-bold uppercase text-sm text-center">[Imagen Faros]</div>
-              </div>
-            </Link>
-
-          </div>
-        </div>
-      
-        <h2 className="text-2xl pt-15 font-black text-white uppercase mb-6 tracking-wide text-center">
-          Encontrá tus repuestos por vehículo
-        </h2>
-        
-        {/* Caja oscura del formulario */}
-        <div className="bg-[#111111] border border-zinc-700 p-6 md:p-8 rounded-2xl w-full shadow-2xl">
-          <form className="flex flex-col md:flex-row gap-4 md:gap-6 items-end w-full">
-            
-            {/* Select Marca */}
-            <div className="flex flex-col w-full">
-              <label className="text-zinc-500 text-xs mb-2">| Selecciona Marca</label>
-              <select className="w-full bg-[#1a1a1a] border border-zinc-600 text-white rounded-md p-4 focus:outline-none focus:border-yellow-500 cursor-pointer">
-                <option value="toyota">(Toyota)</option>
-                <option value="ford">(Ford)</option>
-                <option value="vw">(Volkswagen)</option>
-              </select>
-            </div>
-
-            {/* Select Modelo */}
-            <div className="flex flex-col w-full">
-              <label className="text-zinc-500 text-xs mb-2">| Selecciona Modelo</label>
-              <select className="w-full bg-[#1a1a1a] border border-zinc-600 text-white rounded-md p-4 focus:outline-none focus:border-yellow-500 cursor-pointer">
-                <option value="hilux">(Hilux)</option>
-                <option value="ranger">(Ranger)</option>
-                <option value="amarok">(Amarok)</option>
-              </select>
-            </div>
-
-            {/* Select Año */}
-            <div className="flex flex-col w-full">
-              <label className="text-zinc-500 text-xs mb-2">| Selecciona Año</label>
-              <select className="w-full bg-[#1a1a1a] border border-zinc-600 text-white rounded-md p-4 focus:outline-none focus:border-yellow-500 cursor-pointer">
-                <option value="2023">(2023)</option>
-                <option value="2022">(2022)</option>
-                <option value="2021">(2021)</option>
-              </select>
-            </div>
-
-            {/* Botón Buscar */}
-            <button type="button" className="w-full md:w-auto bg-yellow-500 hover:bg-yellow-400 text-black font-extrabold py-4 px-10 rounded-md uppercase tracking-wide transition-colors whitespace-nowrap">
-              Buscar
-            </button>
-          </form>
-        </div>
+        <motion.div
+          className="relative z-10 w-full max-w-6xl mx-auto px-4 sm:px-6 grid grid-cols-1 md:grid-cols-2 gap-5 md:gap-6"
+          variants={staggerContainer}
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true, margin: "-60px" }}
+        >
+          {CATEGORIES.map((cat, i) => (
+            <CategoryCard key={i} {...cat} index={i} />
+          ))}
+        </motion.div>
       </section>
-      {/* SEPARADOR METÁLICO SUPERIOR (con sombras profundas personalizadas) */}
-      {/* Agregamos la clase drop-shadow personalizada aquí abajo */}
-      <div className="relative w-full h-4 md:h-6 z-30 drop-shadow-[0px_-2px_4px_rgba(0,0,0,0.7)_0px_8px_16px_rgba(0,0,0,0.9)] shadow-[0_10px_15px_rgba(0,0,0,0.8)]">
-        <Image 
-          src="/images/metal-divider-final.png" 
-          alt="Separador metálico superior" 
-          fill 
-          className="object-cover" 
-          priority
-        />
-      </div>
-      
 
-      
-      {/* 4. MARCAS LOGOS (Placeholder) */}
-      <section className="w-full bg-[#383836] py-8 border-b border-zinc-800">
-        <div className="max-w-7xl mx-auto px-4 flex flex-wrap justify-center items-center gap-12 text-zinc-500 font-bold uppercase tracking-widest text-sm md:text-xl">
-          <span>BFGoodrich</span>
-          <span>Warn</span>
-          <span>ARB</span>
-          <span>Baratec</span>
-          <span>Method</span>
-        </div>
-      </section>
-      {/* SEPARADOR METÁLICO INFERIOR */}
-      <div className="relative w-full h-4 md:h-6 z-30 drop-shadow-[0px_-2px_4px_rgba(0,0,0,0.7)_0px_8px_16px_rgba(0,0,0,0.9)] shadow-[0_10px_15px_rgba(0,0,0,0.8)]">
-        <Image 
-          src="/images/metal-divider-final.png" 
-          alt="Separador metálico superior" 
-          fill 
-          className="object-cover" 
-          priority
-        />
-      </div>
-      
-      {/* 5. FOOTER / MAPA */}
-      <section className="relative w-full bg-[#0a0a0a] min-h-[400px] flex flex-col items-center justify-center border-t border-zinc-800 overflow-hidden">
-        {/* Placeholder para fondo de mapa de Yerba Buena */}
-        <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10"></div>
-        
-        <div className="relative z-10 w-full max-w-4xl mx-auto px-4 flex flex-col md:flex-row items-center justify-between gap-10 mt-10">
-          
-          <h2 className="text-3xl md:text-5xl font-black text-white uppercase leading-tight drop-shadow-md">
-            <span className="text-yellow-500">📍</span> Próximamente <br /> en Yerba Buena.
-          </h2>
+      <MetalDivider />
 
-          {/* Formulario de Suscripción */}
-          <div className="flex w-full md:w-auto mt-6 md:mt-0 shadow-lg">
-            <input 
-              type="email" 
-              placeholder="Dejanos tu email y te avisamos." 
-              className="bg-[#111] border border-zinc-700 text-white px-4 py-3 rounded-l-md w-full md:w-64 focus:outline-none focus:border-yellow-500"
+      {/* ── 3. BRANDS STRIP ── */}
+      <motion.section
+        initial={{ opacity: 0 }}
+        whileInView={{ opacity: 1 }}
+        viewport={{ once: true }}
+        transition={{ duration: 0.7 }}
+        className="w-full bg-[#161616] border-y border-zinc-800 py-9"
+      >
+        <motion.div
+          className="max-w-6xl mx-auto px-6 flex flex-wrap justify-center items-center gap-10 md:gap-16"
+          variants={staggerContainer}
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true }}
+        >
+          {BRANDS.map((brand, i) => (
+            <motion.span
+              key={i}
+              variants={{
+                hidden: { opacity: 0, y: 12 },
+                visible: {
+                  opacity: 1,
+                  y: 0,
+                  transition: { duration: 0.4, delay: i * 0.08 },
+                },
+              }}
+              whileHover={{ color: "#ffffff", scale: 1.12 }}
+              className="text-zinc-400 font-black uppercase tracking-widest text-xs md:text-sm cursor-default transition-colors"
+            >
+              {brand}
+            </motion.span>
+          ))}
+        </motion.div>
+      </motion.section>
+
+      <MetalDivider />
+
+      {/* ── 4. COMING SOON + FOOTER ── */}
+      <section className="relative w-full bg-[#0a0a0a] pt-20 pb-12 border-t border-zinc-900/60 overflow-hidden">
+        {/* Map texture */}
+        <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-[0.06]" />
+
+        {/* "Próximamente" block */}
+        <div className="relative z-10 w-full max-w-4xl mx-auto px-4 flex flex-col md:flex-row items-center justify-between gap-10">
+          <motion.h2
+            variants={fadeUp}
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true }}
+            className="text-4xl md:text-5xl font-black text-white uppercase leading-tight drop-shadow-md"
+          >
+            <span className="text-yellow-500">📍</span> Próximamente
+            <br />
+            en Yerba Buena.
+          </motion.h2>
+
+          <motion.div
+            variants={fadeUp}
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true }}
+            transition={{ delay: 0.15 }}
+            className="flex w-full md:w-auto shadow-xl"
+          >
+            <input
+              type="email"
+              placeholder="Dejanos tu email y te avisamos."
+              className="bg-[#111] border border-zinc-700 text-white px-4 py-3 rounded-l-md w-full md:w-72 focus:outline-none focus:border-yellow-500 text-sm placeholder-zinc-600 transition-colors"
             />
-            <button className="bg-white text-black font-bold uppercase text-sm px-6 py-3 rounded-r-md hover:bg-gray-200 transition-colors">
+            <motion.button
+              whileHover={{ backgroundColor: "#facc15", color: "#000" }}
+              whileTap={{ scale: 0.97 }}
+              className="bg-white text-black font-bold uppercase text-xs md:text-sm px-6 py-3 rounded-r-md transition-colors whitespace-nowrap cursor-pointer"
+            >
               Suscribirse
-            </button>
-          </div>
-
+            </motion.button>
+          </motion.div>
         </div>
 
-        {/* Footer final con Logo */}
-        <div className="relative z-10 mt-20 pb-8 flex flex-col items-center text-center w-full">
-          
-          {/* Reemplazamos el texto por tu logo wordmark */}
-          <div className="relative w-56 h-16 mb-4">
-            <Image 
-              src="/images/logo-footer.png" // Asegúrate de tener esta imagen en tu carpeta
-              alt="Bräxor Off-Road Logo"
+        {/* Footer */}
+        <motion.div
+          variants={fadeUp}
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true }}
+          className="relative z-10 mt-20 flex flex-col items-center text-center"
+        >
+          <div className="relative w-52 h-14 mb-3">
+            <Image
+              src="/images/logo-footer.png"
+              alt="Bräxor Off-Road"
               fill
               className="object-contain object-center"
             />
           </div>
-
-          <p className="text-zinc-500 text-xs mb-4">Contact: srrinfo@braxor.com.ar</p>
-          <div className="flex gap-4 text-zinc-500">
-            {/* Redes sociales placeholders */}
-            <span className="hover:text-white cursor-pointer">f</span>
-            <span className="hover:text-white cursor-pointer">IG</span>
-            <span className="hover:text-white cursor-pointer">YT</span>
+          <p className="text-zinc-500 text-xs mb-4">
+            Contact: info@braxor.com.ar
+          </p>
+          <div className="flex gap-5 text-zinc-500 text-sm font-bold">
+            {["FB", "IG", "YT"].map((s) => (
+              <motion.span
+                key={s}
+                whileHover={{ color: "#fff", scale: 1.15 }}
+                className="cursor-pointer transition-colors"
+              >
+                {s}
+              </motion.span>
+            ))}
           </div>
-        </div>
+        </motion.div>
       </section>
-
     </main>
+  );
+}
+
+// ─── Sub-components ───────────────────────────────────────────────────────────
+
+function MetalDivider() {
+  return (
+    <div className="relative w-full h-[18px] md:h-[22px] z-30 shadow-[0_10px_30px_rgba(0,0,0,0.85)]">
+      <Image
+        src="/images/metal-divider-final.png"
+        alt=""
+        fill
+        className="object-cover"
+        priority
+      />
+    </div>
+  );
+}
+
+interface CategoryCardProps {
+  title: string[];
+  href: string;
+  img: string;
+  index: number;
+}
+
+function CategoryCard({ title, href, img, index }: CategoryCardProps) {
+  return (
+    <motion.div
+      variants={{
+        hidden: { opacity: 0, y: 32 },
+        visible: {
+          opacity: 1,
+          y: 0,
+          transition: { duration: 0.52, delay: index * 0.1, ease: "easeOut" },
+        },
+      }}
+    >
+      <Link href={href}>
+        <motion.div
+          initial="rest"
+          whileHover="hover"
+          animate="rest"
+          className="relative h-64 md:h-72 bg-gradient-to-br from-[#1e1e1e] to-[#111] rounded-2xl p-7 border border-zinc-800 overflow-hidden cursor-pointer shadow-[0_6px_24px_rgba(0,0,0,0.6)]"
+        >
+          {/* Hover: border glow */}
+          <motion.div
+            variants={{
+              rest: { opacity: 0 },
+              hover: { opacity: 1 },
+            }}
+            transition={{ duration: 0.25 }}
+            className="absolute inset-0 rounded-2xl border border-zinc-500/50 pointer-events-none z-20"
+          />
+          {/* Hover: inner shine */}
+          <motion.div
+            variants={{
+              rest: { opacity: 0 },
+              hover: { opacity: 1 },
+            }}
+            transition={{ duration: 0.3 }}
+            className="absolute inset-0 rounded-2xl bg-gradient-to-br from-white/[0.03] to-transparent pointer-events-none z-20"
+          />
+          {/* Hover: card lift */}
+          <motion.div
+            variants={{
+              rest: { y: 0 },
+              hover: { y: -4 },
+            }}
+            transition={{ duration: 0.3, ease: "easeOut" }}
+            className="absolute inset-0 rounded-2xl pointer-events-none"
+            style={{ boxShadow: "0 20px 50px rgba(0,0,0,0)" }}
+          />
+
+          {/* Title */}
+          <h3 className="relative z-10 text-xl md:text-2xl font-black uppercase text-white leading-tight tracking-wide w-[52%] drop-shadow-lg">
+            {title.map((line, i) => (
+              <span key={i} className="block">
+                {line}
+              </span>
+            ))}
+          </h3>
+
+          {/* Bottom-right glow blob */}
+          <div className="absolute -bottom-10 -right-10 w-48 h-48 bg-yellow-500/[0.06] rounded-full blur-3xl pointer-events-none" />
+
+          {/* Product Image — zoom on hover */}
+          <motion.div
+            variants={{
+              rest: { scale: 1, rotate: 0 },
+              hover: { scale: 1.09 },
+            }}
+            transition={{ duration: 0.45, ease: "easeOut" }}
+            className="absolute -bottom-3 -right-3 w-52 h-52 md:w-64 md:h-64 z-10"
+          >
+            <Image
+              src={img}
+              alt={title.join(" ")}
+              fill
+              className="object-contain drop-shadow-[0_8px_20px_rgba(0,0,0,0.8)]"
+            />
+          </motion.div>
+        </motion.div>
+      </Link>
+    </motion.div>
   );
 }
