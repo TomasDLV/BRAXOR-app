@@ -8,7 +8,7 @@ export default function Home() {
       {/* NUEVO: SEPARADOR METÁLICO SUPERIOR (Justo debajo del Navbar) */}
       <div className="relative w-full h-4 md:h-6 z-30 shadow-[0_10px_15px_rgba(0,0,0,0.8)]">
         <Image 
-          src="/images/metal-divider.png" 
+          src="/images/metal-divider-final.png" 
           alt="Separador metálico superior" 
           fill 
           className="object-cover" 
@@ -29,7 +29,7 @@ export default function Home() {
           className="object-cover object-center z-0"
         />
 
-        {/* Humo negro eliminado. Solo dejamos un degradado sutil arriba y abajo para que el texto blanco no se pierda */}
+        {/* Dejamos un degradado sutil arriba y abajo para que el texto blanco no se pierda */}
         <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-transparent to-[#0a0a0a] z-10"></div>
         
         {/* Contenido (Texto y Botón) */}
@@ -42,90 +42,94 @@ export default function Home() {
           </p>
           
           <button className="bg-yellow-500 hover:bg-yellow-400 text-black font-extrabold py-4 px-10 rounded-md uppercase tracking-wide transition-all shadow-[0_0_20px_rgba(234,179,8,0.4)] hover:shadow-[0_0_30px_rgba(234,179,8,0.6)] hover:-translate-y-1">
-            Buscar tu vehículo
+            EXPLORAR CATÁLOGO
           </button>
         </div>
       </section>
 
-      {/* 2. SEPARADOR METÁLICO INFERIOR */}
-      <div className="relative w-full h-4 md:h-6 z-30 shadow-[0_-10px_15px_rgba(0,0,0,0.6)] mt-[-1px]">
+      {/* SEPARADOR METÁLICO SUPERIOR (con sombras profundas personalizadas) */}
+      {/* Agregamos la clase drop-shadow personalizada aquí abajo */}
+      <div className="relative w-full h-4 md:h-6 z-30 drop-shadow-[0px_-2px_4px_rgba(0,0,0,0.7)_0px_8px_16px_rgba(0,0,0,0.9)] shadow-[0_10px_15px_rgba(0,0,0,0.8)]">
         <Image 
-          src="/images/metal-divider.png" 
-          alt="Separador metálico inferior" 
+          src="/images/metal-divider-final.png" 
+          alt="Separador metálico superior" 
           fill 
           className="object-cover" 
+          priority
         />
       </div>
-      {/* 2. DESTACADOS & NOVEDADES */}
-      <section className="w-full max-w-7xl mx-auto px-4 py-16 flex flex-col items-center">
-        <h2 className="text-3xl font-black text-white uppercase mb-10 tracking-wide text-center">
-          Destacados & Novedades Bräxor
-        </h2>
+      {/* 2. GRILLA DE CATEGORÍAS PRINCIPALES */}
+      {/* Añadimos un fondo con un patrón muy sutil (carbon fiber o textura oscura) para dar el efecto del mockup */}
+      <section className="relative w-full py-20 flex flex-col items-center bg-[#0d0d0d]">
+        
+        {/* Patrón de fondo opcional (si quieres que no sea liso oscuro) */}
+        <div className="absolute inset-0 opacity-[0.03] bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] pointer-events-none"></div>
 
-        {/* Grilla de 4 Productos */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 w-full">
-          
-          {/* Tarjeta de Producto 1 */}
-          <div className="bg-[#1a1a1a] border border-zinc-700 hover:border-zinc-500 transition-colors rounded-xl p-4 flex flex-col relative group cursor-pointer">
-            {/* Etiqueta [NUEVO] */}
-            <span className="absolute top-3 right-3 bg-yellow-500 text-black text-[10px] font-black px-2 py-1 uppercase rounded-sm z-10">
-              [Nuevo]
-            </span>
-            {/* Espacio para Imagen */}
-            <div className="w-full h-40 bg-zinc-800 rounded-lg mb-4 flex items-center justify-center group-hover:scale-105 transition-transform"></div>
-            {/* Info */}
-            <h3 className="text-sm font-bold text-zinc-300 uppercase text-center h-10 line-clamp-2">
-              BFGoodrich Tire & Neumáticos
-            </h3>
-            <div className="w-full h-px bg-yellow-500 my-3 opacity-50"></div>
-            <p className="text-xl font-bold text-white text-center">ARS 299.000</p>
+        <div className="relative z-10 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          {/* Grilla: 1 columna en móvil, 2 en PC */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8">
+            
+            {/* Tarjeta 1: Llantas */}
+            <Link href="/catalogo/llantas" className="group block h-72 md:h-80 bg-gradient-to-br from-[#1c1c1c] to-[#111] rounded-[1.5rem] p-8 border border-zinc-800/80 hover:border-zinc-600 transition-all duration-300 relative overflow-hidden shadow-2xl hover:shadow-[0_0_30px_rgba(255,255,255,0.05)]">
+              <h3 className="text-2xl md:text-3xl font-bold uppercase text-white leading-tight w-2/3 tracking-wide drop-shadow-md">
+                Llantas &<br/>Neumáticos
+              </h3>
+              {/* Contenedor de la imagen (Ajustar w y h según tu imagen png) */}
+              <div className="absolute -bottom-8 -right-8 w-64 h-64 md:w-80 md:h-80 group-hover:scale-105 transition-transform duration-500 ease-out">
+                {/* REEMPLAZAR ESTE DIV POR TU IMAGEN REAL:
+                  <Image src="/images/cat-llantas.png" alt="Llantas" fill className="object-contain" />
+                */}
+                <div className="w-full h-full bg-zinc-800/50 rounded-full blur-xl absolute inset-0 mix-blend-overlay"></div>
+                <div className="w-full h-full border-4 border-dashed border-zinc-700/30 rounded-full flex items-center justify-center text-zinc-600 font-bold uppercase text-sm rotate-[-15deg]">[Imagen Llantas]</div>
+              </div>
+            </Link>
+
+            {/* Tarjeta 2: Suspensión */}
+            <Link href="/catalogo/suspension" className="group block h-72 md:h-80 bg-gradient-to-br from-[#1c1c1c] to-[#111] rounded-[1.5rem] p-8 border border-zinc-800/80 hover:border-zinc-600 transition-all duration-300 relative overflow-hidden shadow-2xl hover:shadow-[0_0_30px_rgba(255,255,255,0.05)]">
+              <h3 className="text-2xl md:text-3xl font-bold uppercase text-white leading-tight w-2/3 tracking-wide drop-shadow-md">
+                Kits de<br/>Suspensión
+              </h3>
+              <div className="absolute bottom-4 -right-4 w-56 h-56 md:w-72 md:h-72 group-hover:scale-105 transition-transform duration-500 ease-out">
+                 {/* REEMPLAZAR ESTE DIV POR TU IMAGEN REAL:
+                  <Image src="/images/cat-suspension.png" alt="Suspensión" fill className="object-contain" />
+                */}
+                 <div className="w-full h-full bg-zinc-800/50 rounded-lg blur-xl absolute inset-0 mix-blend-overlay"></div>
+                <div className="w-full h-full border-4 border-dashed border-zinc-700/30 rounded-lg flex items-center justify-center text-zinc-600 font-bold uppercase text-sm rotate-[10deg]">[Imagen Amortiguadores]</div>
+              </div>
+            </Link>
+
+            {/* Tarjeta 3: Defensas */}
+            <Link href="/catalogo/defensas" className="group block h-72 md:h-80 bg-gradient-to-br from-[#1c1c1c] to-[#111] rounded-[1.5rem] p-8 border border-zinc-800/80 hover:border-zinc-600 transition-all duration-300 relative overflow-hidden shadow-2xl hover:shadow-[0_0_30px_rgba(255,255,255,0.05)]">
+              <h3 className="text-2xl md:text-3xl font-bold uppercase text-white leading-tight w-2/3 tracking-wide drop-shadow-md">
+                Defensas &<br/>Estribos
+              </h3>
+              <div className="absolute bottom-6 left-1/2 -translate-x-1/2 w-[90%] h-40 md:h-48 group-hover:translate-y-[-10px] transition-transform duration-500 ease-out">
+                 {/* REEMPLAZAR ESTE DIV POR TU IMAGEN REAL:
+                  <Image src="/images/cat-defensas.png" alt="Defensas" fill className="object-contain object-bottom" />
+                */}
+                 <div className="w-full h-full bg-zinc-800/50 rounded-xl blur-xl absolute inset-0 mix-blend-overlay"></div>
+                <div className="w-full h-full border-4 border-dashed border-zinc-700/30 rounded-xl flex items-center justify-center text-zinc-600 font-bold uppercase text-sm">[Imagen Defensa]</div>
+              </div>
+            </Link>
+
+            {/* Tarjeta 4: Iluminación */}
+            <Link href="/catalogo/iluminacion" className="group block h-72 md:h-80 bg-gradient-to-br from-[#1c1c1c] to-[#111] rounded-[1.5rem] p-8 border border-zinc-800/80 hover:border-zinc-600 transition-all duration-300 relative overflow-hidden shadow-2xl hover:shadow-[0_0_30px_rgba(255,255,255,0.05)]">
+              <h3 className="text-2xl md:text-3xl font-bold uppercase text-white leading-tight w-2/3 tracking-wide drop-shadow-md">
+                Iluminación<br/>LED
+              </h3>
+              <div className="absolute bottom-6 right-6 w-48 h-32 md:w-64 md:h-48 group-hover:scale-105 transition-transform duration-500 ease-out">
+                 {/* REEMPLAZAR ESTE DIV POR TU IMAGEN REAL:
+                  <Image src="/images/cat-iluminacion.png" alt="Iluminación" fill className="object-contain object-bottom right-0" />
+                */}
+                 <div className="w-full h-full bg-zinc-800/50 rounded-xl blur-lg absolute inset-0 mix-blend-overlay"></div>
+                <div className="w-full h-full border-4 border-dashed border-zinc-700/30 rounded-xl flex items-center justify-center text-zinc-600 font-bold uppercase text-sm text-center">[Imagen Faros]</div>
+              </div>
+            </Link>
+
           </div>
-
-          {/* Tarjeta de Producto 2 */}
-          <div className="bg-[#1a1a1a] border border-zinc-700 hover:border-zinc-500 transition-colors rounded-xl p-4 flex flex-col relative group cursor-pointer">
-            <span className="absolute top-3 right-3 bg-zinc-300 text-black text-[10px] font-black px-2 py-1 uppercase rounded-sm z-10">
-              [Destacado]
-            </span>
-            <div className="w-full h-40 bg-zinc-800 rounded-lg mb-4 flex items-center justify-center group-hover:scale-105 transition-transform"></div>
-            <h3 className="text-sm font-bold text-zinc-300 uppercase text-center h-10 line-clamp-2">
-              Baratec Kits de Suspensión Kit
-            </h3>
-            <div className="w-full h-px bg-yellow-500 my-3 opacity-50"></div>
-            <p className="text-xl font-bold text-white text-center">ARS 375.000</p>
-          </div>
-
-          {/* Tarjeta de Producto 3 */}
-          <div className="bg-[#1a1a1a] border border-zinc-700 hover:border-zinc-500 transition-colors rounded-xl p-4 flex flex-col relative group cursor-pointer">
-            <span className="absolute top-3 right-3 bg-zinc-300 text-black text-[10px] font-black px-2 py-1 uppercase rounded-sm z-10">
-              [Destacado]
-            </span>
-            <div className="w-full h-40 bg-zinc-800 rounded-lg mb-4 flex items-center justify-center group-hover:scale-105 transition-transform"></div>
-            <h3 className="text-sm font-bold text-zinc-300 uppercase text-center h-10 line-clamp-2">
-              Rhino Bumper
-            </h3>
-            <div className="w-full h-px bg-yellow-500 my-3 opacity-50"></div>
-            <p className="text-xl font-bold text-white text-center">ARS 279.000</p>
-          </div>
-
-          {/* Tarjeta de Producto 4 */}
-          <div className="bg-[#1a1a1a] border border-zinc-700 hover:border-zinc-500 transition-colors rounded-xl p-4 flex flex-col relative group cursor-pointer">
-            <span className="absolute top-3 right-3 bg-yellow-500 text-black text-[10px] font-black px-2 py-1 uppercase rounded-sm z-10">
-              [Nuevo]
-            </span>
-            <div className="w-full h-40 bg-zinc-800 rounded-lg mb-4 flex items-center justify-center group-hover:scale-105 transition-transform"></div>
-            <h3 className="text-sm font-bold text-zinc-300 uppercase text-center h-10 line-clamp-2">
-              Method Race Wheels
-            </h3>
-            <div className="w-full h-px bg-yellow-500 my-3 opacity-50"></div>
-            <p className="text-xl font-bold text-white text-center">ARS 335.000</p>
-          </div>
-
         </div>
-      </section>
-
-      {/* 3. BUSCADOR POR VEHÍCULO */}
-      <section className="w-full max-w-5xl mx-auto px-4 pb-20 flex flex-col items-center">
-        <h2 className="text-2xl font-black text-white uppercase mb-6 tracking-wide text-center">
+      
+        <h2 className="text-2xl pt-15 font-black text-white uppercase mb-6 tracking-wide text-center">
           Encontrá tus repuestos por vehículo
         </h2>
         
@@ -170,12 +174,22 @@ export default function Home() {
           </form>
         </div>
       </section>
+      {/* SEPARADOR METÁLICO SUPERIOR (con sombras profundas personalizadas) */}
+      {/* Agregamos la clase drop-shadow personalizada aquí abajo */}
+      <div className="relative w-full h-4 md:h-6 z-30 drop-shadow-[0px_-2px_4px_rgba(0,0,0,0.7)_0px_8px_16px_rgba(0,0,0,0.9)] shadow-[0_10px_15px_rgba(0,0,0,0.8)]">
+        <Image 
+          src="/images/metal-divider-final.png" 
+          alt="Separador metálico superior" 
+          fill 
+          className="object-cover" 
+          priority
+        />
+      </div>
+      
 
-      {/* SEPARADOR METÁLICO */}
-      <div className="w-full h-2 bg-gradient-to-b from-zinc-500 via-zinc-300 to-zinc-600 border-y border-black opacity-80"></div>
-
+      
       {/* 4. MARCAS LOGOS (Placeholder) */}
-      <section className="w-full bg-[#111111] py-8 border-b border-zinc-800">
+      <section className="w-full bg-[#383836] py-8 border-b border-zinc-800">
         <div className="max-w-7xl mx-auto px-4 flex flex-wrap justify-center items-center gap-12 text-zinc-500 font-bold uppercase tracking-widest text-sm md:text-xl">
           <span>BFGoodrich</span>
           <span>Warn</span>
@@ -184,7 +198,17 @@ export default function Home() {
           <span>Method</span>
         </div>
       </section>
-
+      {/* SEPARADOR METÁLICO INFERIOR */}
+      <div className="relative w-full h-4 md:h-6 z-30 drop-shadow-[0px_-2px_4px_rgba(0,0,0,0.7)_0px_8px_16px_rgba(0,0,0,0.9)] shadow-[0_10px_15px_rgba(0,0,0,0.8)]">
+        <Image 
+          src="/images/metal-divider-final.png" 
+          alt="Separador metálico superior" 
+          fill 
+          className="object-cover" 
+          priority
+        />
+      </div>
+      
       {/* 5. FOOTER / MAPA */}
       <section className="relative w-full bg-[#0a0a0a] min-h-[400px] flex flex-col items-center justify-center border-t border-zinc-800 overflow-hidden">
         {/* Placeholder para fondo de mapa de Yerba Buena */}
@@ -210,7 +234,6 @@ export default function Home() {
 
         </div>
 
-        {/* Footer final con Logo */}
         {/* Footer final con Logo */}
         <div className="relative z-10 mt-20 pb-8 flex flex-col items-center text-center w-full">
           
