@@ -1,0 +1,413 @@
+"use client";
+
+import { useState, useMemo } from "react";
+import Image from "next/image";
+import Link from "next/link";
+import { motion, AnimatePresence } from "framer-motion";
+import { Search, Zap, Star, ArrowRight, SlidersHorizontal } from "lucide-react";
+
+// ─── Types ────────────────────────────────────────────────────────────────────
+
+type Category = "Todos" | "Llantas" | "Suspensión" | "Defensas" | "Iluminación";
+
+interface Product {
+  id: string;
+  name: string;
+  price: number;
+  category: Exclude<Category, "Todos">;
+  brand: string;
+  imageUrl: string;
+  isNew: boolean;
+  isPopular: boolean;
+  sku: string;
+}
+
+// ─── Mock Data ────────────────────────────────────────────────────────────────
+
+const MOCK_PRODUCTS: Product[] = [
+  {
+    id: "1",
+    name: "Neumático BFGoodrich All-Terrain T/A KO2",
+    price: 185000,
+    category: "Llantas",
+    brand: "BFGoodrich",
+    imageUrl: "/images/products/bfg-ko2.png",
+    isNew: true,
+    isPopular: true,
+    sku: "BFG-KO2-265-70",
+  },
+  {
+    id: "2",
+    name: "Kit de Suspensión Lift 3\" Ranger/Amarok",
+    price: 420000,
+    category: "Suspensión",
+    brand: "Warn",
+    imageUrl: "/images/products/kit-suspension-warn.png",
+    isNew: false,
+    isPopular: true,
+    sku: "WARN-SUSP-3IN",
+  },
+  {
+    id: "3",
+    name: "Defensa Delantera ARB Summit Series",
+    price: 680000,
+    category: "Defensas",
+    brand: "ARB",
+    imageUrl: "/images/products/arb-summit.png",
+    isNew: true,
+    isPopular: false,
+    sku: "ARB-SUM-HILUX",
+  },
+  {
+    id: "4",
+    name: "Llanta Method Race Wheels MR305 NV",
+    price: 245000,
+    category: "Llantas",
+    brand: "Method Race Wheels",
+    imageUrl: "/images/products/method-305.png",
+    isNew: false,
+    isPopular: true,
+    sku: "MRW-305-17x9",
+  },
+  {
+    id: "5",
+    name: "Barra LED Baratec 50\" Curved Serie Pro",
+    price: 195000,
+    category: "Iluminación",
+    brand: "Baratec",
+    imageUrl: "/images/products/barra-led-baratec.png",
+    isNew: true,
+    isPopular: false,
+    sku: "BAR-LED-50C",
+  },
+  {
+    id: "6",
+    name: "Amortiguador Nitrogen ARB Old Man Emu",
+    price: 98000,
+    category: "Suspensión",
+    brand: "ARB",
+    imageUrl: "/images/products/ome-nitro.png",
+    isNew: false,
+    isPopular: true,
+    sku: "ARB-OME-NITRO-F",
+  },
+  {
+    id: "7",
+    name: "Estribo Lateral Tubular Doble Step",
+    price: 310000,
+    category: "Defensas",
+    brand: "Baratec",
+    imageUrl: "/images/products/estribo-baratec.png",
+    isNew: false,
+    isPopular: false,
+    sku: "BAR-EST-DBL",
+  },
+  {
+    id: "8",
+    name: "Faros Auxiliares Redondos 7\" LED Pair",
+    price: 87000,
+    category: "Iluminación",
+    brand: "Warn",
+    imageUrl: "/images/products/faros-warn.png",
+    isNew: true,
+    isPopular: true,
+    sku: "WARN-FAR-7LED",
+  },
+  {
+    id: "9",
+    name: "Neumático General Grabber X3 M/T",
+    price: 165000,
+    category: "Llantas",
+    brand: "General Tire",
+    imageUrl: "/images/products/general-x3.png",
+    isNew: false,
+    isPopular: false,
+    sku: "GEN-X3-285-75",
+  },
+  {
+    id: "10",
+    name: "Kit Resortes Progresivos +50mm Hilux",
+    price: 220000,
+    category: "Suspensión",
+    brand: "Warn",
+    imageUrl: "/images/products/resortes-warn.png",
+    isNew: true,
+    isPopular: false,
+    sku: "WARN-RES-50-HIL",
+  },
+];
+
+const CATEGORIES: Category[] = ["Todos", "Llantas", "Suspensión", "Defensas", "Iluminación"];
+
+const formatARS = (n: number) =>
+  new Intl.NumberFormat("es-AR", {
+    style: "currency",
+    currency: "ARS",
+    maximumFractionDigits: 0,
+  }).format(n);
+
+// ─── Page ─────────────────────────────────────────────────────────────────────
+
+export default function CatalogoPage() {
+  const [query, setQuery] = useState("");
+  const [activeCategory, setActiveCategory] = useState<Category>("Todos");
+
+  const filtered = useMemo(() => {
+    const q = query.toLowerCase().trim();
+    return MOCK_PRODUCTS.filter((p) => {
+      const matchCat = activeCategory === "Todos" || p.category === activeCategory;
+      const matchQuery =
+        !q ||
+        p.name.toLowerCase().includes(q) ||
+        p.brand.toLowerCase().includes(q) ||
+        p.sku.toLowerCase().includes(q);
+      return matchCat && matchQuery;
+    });
+  }, [query, activeCategory]);
+
+  return (
+    <main className="min-h-screen bg-[#0a0a0a]">
+      {/* ── HEADER ── */}
+      <section className="relative w-full pt-16 pb-12 px-4 overflow-hidden border-b border-zinc-900">
+        {/* Background texture */}
+        <div className="absolute inset-0 opacity-[0.04] bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')]" />
+        {/* Yellow glow top-left */}
+        <div className="absolute -top-20 -left-20 w-72 h-72 bg-yellow-500/10 rounded-full blur-3xl pointer-events-none" />
+
+        <div className="relative z-10 max-w-7xl mx-auto">
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, ease: "easeOut" }}
+          >
+            <p className="text-yellow-500 text-xs font-bold uppercase tracking-[0.3em] mb-3">
+              — Bräxor Off-Road
+            </p>
+            <h1 className="text-5xl md:text-7xl font-black text-white uppercase tracking-tighter leading-none drop-shadow-lg">
+              Catálogo
+              <br />
+              <span className="text-zinc-600">Completo</span>
+            </h1>
+            <p className="text-zinc-400 text-base md:text-lg mt-4 max-w-xl font-medium">
+              Equipamiento seleccionado para el máximo rendimiento Off-Road.
+            </p>
+          </motion.div>
+        </div>
+      </section>
+
+      {/* ── TOOLBAR ── */}
+      <section className="sticky top-[72px] z-40 bg-[#0a0a0a]/95 backdrop-blur-xl border-b border-zinc-900 py-4 px-4">
+        <div className="max-w-7xl mx-auto flex flex-col md:flex-row gap-4 items-stretch md:items-center justify-between">
+
+          {/* Search */}
+          <div className="relative flex-1 max-w-full md:max-w-sm">
+            <Search
+              size={16}
+              className="absolute left-3.5 top-1/2 -translate-y-1/2 text-zinc-500 pointer-events-none"
+            />
+            <input
+              type="text"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder="Buscar por nombre, marca o SKU..."
+              className="w-full bg-[#1a1a1a] border border-zinc-800 text-white text-sm pl-10 pr-4 py-3 rounded-lg focus:outline-none focus:border-zinc-600 placeholder-zinc-600 transition-colors"
+            />
+          </div>
+
+          {/* Category Pills + Filter icon */}
+          <div className="flex items-center gap-2 flex-wrap">
+            <SlidersHorizontal size={16} className="text-zinc-600 flex-shrink-0 hidden md:block" />
+            {CATEGORIES.map((cat) => (
+              <motion.button
+                key={cat}
+                onClick={() => setActiveCategory(cat)}
+                whileTap={{ scale: 0.94 }}
+                className={`px-4 py-2 rounded-md text-xs font-bold uppercase tracking-widest transition-colors cursor-pointer whitespace-nowrap ${
+                  activeCategory === cat
+                    ? "bg-yellow-500 text-black shadow-[0_0_14px_rgba(234,179,8,0.45)]"
+                    : "bg-zinc-900 text-zinc-400 border border-zinc-800 hover:border-zinc-600 hover:text-white"
+                }`}
+              >
+                {cat}
+              </motion.button>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── PRODUCT GRID ── */}
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 py-12">
+        {/* Count */}
+        <motion.p
+          layout
+          className="text-zinc-600 text-xs uppercase tracking-widest mb-8 font-medium"
+        >
+          {filtered.length} producto{filtered.length !== 1 ? "s" : ""} encontrado
+          {filtered.length !== 1 ? "s" : ""}
+        </motion.p>
+
+        {/* Grid */}
+        <motion.div
+          layout
+          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5 md:gap-6"
+        >
+          <AnimatePresence mode="popLayout">
+            {filtered.length > 0 ? (
+              filtered.map((product, i) => (
+                <ProductCard key={product.id} product={product} index={i} />
+              ))
+            ) : (
+              <motion.div
+                key="empty"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="col-span-full flex flex-col items-center justify-center py-32 gap-4 text-center"
+              >
+                <Search size={40} className="text-zinc-700" />
+                <p className="text-zinc-500 font-semibold uppercase tracking-widest text-sm">
+                  Sin resultados para &quot;{query}&quot;
+                </p>
+                <button
+                  onClick={() => { setQuery(""); setActiveCategory("Todos"); }}
+                  className="text-yellow-500 text-xs uppercase tracking-widest font-bold hover:text-yellow-400 transition-colors"
+                >
+                  Limpiar filtros
+                </button>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </motion.div>
+      </section>
+    </main>
+  );
+}
+
+// ─── Product Card ─────────────────────────────────────────────────────────────
+
+function ProductCard({ product, index }: { product: Product; index: number }) {
+  return (
+    <motion.div
+      layout
+      initial={{ opacity: 0, y: 28 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, scale: 0.94 }}
+      transition={{ duration: 0.38, delay: index * 0.055, ease: "easeOut" }}
+      whileHover="hover"
+      initial-variant="rest"
+      className="group"
+    >
+      <Link href={`/catalogo/${product.id}`}>
+        <motion.article
+          variants={{
+            rest: {
+              y: 0,
+              boxShadow: "0 4px 20px rgba(0,0,0,0.55)",
+            },
+            hover: {
+              y: -6,
+              boxShadow: "0 20px 50px rgba(0,0,0,0.8), 0 0 0 1px rgba(234,179,8,0.18)",
+            },
+          }}
+          transition={{ duration: 0.3, ease: "easeOut" }}
+          className="relative bg-[#111] border border-zinc-800 rounded-2xl overflow-hidden cursor-pointer h-full flex flex-col"
+        >
+          {/* ── IMAGE ZONE ── */}
+          <div className="relative h-56 md:h-60 bg-[#0d0d0d] overflow-hidden flex-shrink-0">
+            {/* Glow behind image */}
+            <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_rgba(234,179,8,0.06)_0%,_transparent_70%)]" />
+
+            {/* Product image with zoom */}
+            <motion.div
+              variants={{
+                rest: { scale: 1 },
+                hover: { scale: 1.07 },
+              }}
+              transition={{ duration: 0.45, ease: "easeOut" }}
+              className="absolute inset-0 flex items-center justify-center p-6"
+            >
+              <Image
+                src={product.imageUrl}
+                alt={product.name}
+                fill
+                className="object-contain drop-shadow-[0_8px_18px_rgba(0,0,0,0.9)] p-6"
+              />
+            </motion.div>
+
+            {/* Badges */}
+            <div className="absolute top-3 left-3 flex flex-col gap-1.5 z-10">
+              {product.isNew && (
+                <span className="flex items-center gap-1 bg-yellow-500 text-black text-[10px] font-black uppercase tracking-widest px-2.5 py-1 rounded-md leading-none">
+                  <Zap size={9} strokeWidth={3} />
+                  Nuevo
+                </span>
+              )}
+              {product.isPopular && (
+                <span className="flex items-center gap-1 bg-zinc-800 text-zinc-300 text-[10px] font-black uppercase tracking-widest px-2.5 py-1 rounded-md leading-none border border-zinc-700">
+                  <Star size={9} strokeWidth={3} />
+                  Destacado
+                </span>
+              )}
+            </div>
+
+            {/* Hover: "Ver Detalles" reveal */}
+            <motion.div
+              variants={{
+                rest: { opacity: 0, y: 8 },
+                hover: { opacity: 1, y: 0 },
+              }}
+              transition={{ duration: 0.25 }}
+              className="absolute bottom-3 right-3 z-10"
+            >
+              <span className="flex items-center gap-1.5 bg-yellow-500 text-black text-[10px] font-black uppercase tracking-widest px-3 py-1.5 rounded-md leading-none shadow-lg">
+                Ver detalles
+                <ArrowRight size={10} strokeWidth={3} />
+              </span>
+            </motion.div>
+          </div>
+
+          {/* ── INFO ZONE ── */}
+          <div className="flex flex-col flex-1 p-5 gap-2">
+            {/* Brand */}
+            <p className="text-zinc-500 text-[10px] font-bold uppercase tracking-[0.2em]">
+              {product.brand}
+            </p>
+
+            {/* Name */}
+            <h3 className="text-white font-black uppercase text-sm md:text-[13px] leading-snug tracking-wide line-clamp-2 flex-1">
+              {product.name}
+            </h3>
+
+            {/* Divider */}
+            <div className="w-full h-px bg-zinc-800 mt-1" />
+
+            {/* Price + SKU */}
+            <div className="flex items-end justify-between mt-1">
+              <div>
+                <p className="text-[10px] text-zinc-600 uppercase tracking-widest font-medium">
+                  Precio
+                </p>
+                <p className="text-yellow-500 font-black text-lg md:text-xl leading-none">
+                  {formatARS(product.price)}
+                </p>
+              </div>
+              <p className="text-zinc-700 text-[9px] uppercase tracking-widest font-mono">
+                {product.sku}
+              </p>
+            </div>
+          </div>
+
+          {/* Bottom border glow on hover */}
+          <motion.div
+            variants={{
+              rest: { scaleX: 0 },
+              hover: { scaleX: 1 },
+            }}
+            transition={{ duration: 0.3 }}
+            className="absolute bottom-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-yellow-500/70 to-transparent origin-center"
+          />
+        </motion.article>
+      </Link>
+    </motion.div>
+  );
+}
