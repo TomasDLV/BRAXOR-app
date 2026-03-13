@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(ls /c/Users/tomas/braxor-app/src/app/admin/ 2>/dev/null && find /c/Users/tomas/braxor-app/src -name \"*.env*\" 2>/dev/null; ls /c/Users/tomas/braxor-app/.env* 2>/dev/null)",
+      "Bash(cd \"C:/Users/tomas/braxor-app\" && npx tsc --noEmit 2>&1 | head -40)"
+    ]
+  }
+}

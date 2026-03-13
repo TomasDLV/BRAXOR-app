@@ -44,6 +44,7 @@ model Product {
   
   isFeatured  Boolean   @default(false)
   isNew       Boolean   @default(true)
+  imageUrl    String?
   
   categoryId  String
   category    Category  @relation(fields: [categoryId], references: [id])

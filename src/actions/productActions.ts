@@ -25,6 +25,7 @@ export async function createProduct(
     brandId: formData.get("brandId") as string,
     isFeatured: formData.get("isFeatured") === "on",
     isNew: formData.get("isNew") === "on",
+    imageUrl: formData.get("imageUrl") as string | null,
   };
 
   // — Validation —
@@ -51,6 +52,7 @@ export async function createProduct(
         brandId: raw.brandId,
         isFeatured: raw.isFeatured,
         isNew: raw.isNew,
+        imageUrl: raw.imageUrl?.trim() || null,
       },
     });
 

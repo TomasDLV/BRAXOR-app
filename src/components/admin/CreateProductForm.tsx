@@ -4,6 +4,7 @@ import { useActionState, useEffect, useRef, useState } from "react";
 import { useFormStatus } from "react-dom";
 import { createProduct, type ActionState } from "@/actions/productActions";
 import { Plus, X, CheckCircle2, AlertCircle, ChevronDown } from "lucide-react";
+import ProductImageUploader from "@/components/admin/ProductImageUploader";
 
 interface Props {
   categories: { id: string; name: string }[];
@@ -37,10 +38,12 @@ export default function CreateProductForm({ categories, brands }: Props) {
   const [open, setOpen] = useState(false);
   const [state, formAction] = useActionState<ActionState, FormData>(createProduct, null);
   const formRef = useRef<HTMLFormElement>(null);
+  const [imageUrl, setImageUrl] = useState("");
 
   useEffect(() => {
     if (state?.success) {
       formRef.current?.reset();
+      setImageUrl("");
       // Auto-close form after success
       const t = setTimeout(() => setOpen(false), 1800);
       return () => clearTimeout(t);
@@ -164,6 +167,10 @@ export default function CreateProductForm({ categories, brands }: Props) {
                 className="bg-[#111] border border-zinc-700 text-white text-sm px-4 py-3 rounded-lg focus:outline-none focus:border-yellow-500/70 placeholder-zinc-700 transition-colors resize-none"
               />
             </div>
+
+            {/* Image Upload */}
+            <ProductImageUploader onUploadComplete={setImageUrl} />
+            <input type="hidden" name="imageUrl" value={imageUrl} />
 
             {/* Toggles */}
             <div className="flex flex-wrap gap-6 pt-1">

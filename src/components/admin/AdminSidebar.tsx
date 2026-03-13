@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { LayoutDashboard, Package, Tag, ArrowLeft, Zap } from "lucide-react";
+import SignOutButton from "@/components/admin/SignOutButton";
 
 const NAV = [
   { label: "Dashboard", href: "/admin", icon: LayoutDashboard, exact: true },
@@ -64,8 +65,8 @@ export default function AdminSidebar() {
         })}
       </nav>
 
-      {/* Back to store */}
-      <div className="px-3 py-5 border-t border-zinc-800">
+      {/* Back to store + Sign out */}
+      <div className="px-3 py-5 border-t border-zinc-800 flex flex-col gap-1">
         <Link
           href="/"
           className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-zinc-600 hover:text-zinc-300 text-sm font-semibold transition-colors hover:bg-zinc-800/40"
@@ -73,6 +74,7 @@ export default function AdminSidebar() {
           <ArrowLeft size={16} strokeWidth={2} />
           Volver a la Tienda
         </Link>
+        <SignOutButton />
       </div>
     </aside>
   );
