@@ -12,7 +12,7 @@
  */
 
 import { useEffect, useRef } from "react";
-import { useLenis } from "lenis/react";
+import { useLenis } from "@/lib/lenis";
 
 const SNAP_IDS = [
   "hero-section",
