@@ -12,12 +12,12 @@ export default async function CatalogoPage({
 
   const [products, categories, brands] = await Promise.all([
     prisma.product.findMany({
-      where: { isActive: true, category: { showInHome: true } },
+      where: { isActive: true },
       include: { category: true, brand: true },
       orderBy: { createdAt: "desc" },
     }),
-    prisma.category.findMany({ where: { showInHome: true }, orderBy: { name: "asc" } }),
-    prisma.partBrand.findMany({ where: { showInHome: true }, orderBy: { name: "asc" } }),
+    prisma.category.findMany({ orderBy: { name: "asc" } }),
+    prisma.partBrand.findMany({ orderBy: { name: "asc" } }),
   ]);
 
   const matchedCategory = categoria
