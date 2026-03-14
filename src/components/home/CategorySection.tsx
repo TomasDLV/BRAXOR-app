@@ -22,92 +22,55 @@ interface CategoryPlateProps {
 function CategoryPlate({ category, index }: CategoryPlateProps) {
   return (
     <motion.div
-      initial={{ opacity: 0, y: 32 }}
-      whileInView={{ opacity: 1, y: 0 }}
+      initial={{ opacity: 0, y: 32, scale: 0.95, filter: "blur(8px)" }}
+      whileInView={{ opacity: 1, y: 0, scale: 1, filter: "blur(0px)" }}
       viewport={VP}
-      transition={{ duration: 0.6, delay: index * 0.08, ease: [0.22, 1, 0.36, 1] }}
+      transition={{ duration: 0.65, delay: index * 0.08, ease: [0.22, 1, 0.36, 1] }}
     >
-      <Link href={category.href}>
-        <motion.div
-          initial="rest"
-          whileHover="hover"
-          animate="rest"
-          className="relative h-64 md:h-72 rounded-2xl overflow-hidden cursor-pointer group"
-          style={{
-            background: "linear-gradient(135deg, #1c1c1c 0%, #0f0f0f 60%, #141414 100%)",
-          }}
-        >
-          {/* Metal border — animated yellow on hover */}
-          <motion.div
-            variants={{ rest: { opacity: 0 }, hover: { opacity: 1 } }}
-            transition={{ duration: 0.3 }}
-            className="absolute inset-0 rounded-2xl pointer-events-none z-30"
-            style={{
-              boxShadow: "inset 0 0 0 1px rgba(234,179,8,0.55), 0 0 40px rgba(234,179,8,0.12)",
-            }}
+      <Link
+        href={category.href}
+        className="relative overflow-hidden group aspect-[16/9] md:aspect-[4/3] rounded-xl border border-zinc-800 block bg-zinc-950"
+      >
+        {/* Full-bleed image */}
+        {category.imageUrl ? (
+          <Image
+            src={category.imageUrl}
+            alt={category.name}
+            fill
+            className="object-cover object-center transition-transform duration-700 group-hover:scale-105"
+            unoptimized
           />
+        ) : (
+          <div className="absolute inset-0 flex items-center justify-center bg-[#111]">
+            <Tag size={64} className="text-zinc-700" strokeWidth={1} />
+          </div>
+        )}
 
-          {/* Base border */}
-          <div className="absolute inset-0 rounded-2xl border border-zinc-800 pointer-events-none z-20" />
+        {/* Gradient overlay for text readability */}
+        <div className="absolute inset-0 bg-gradient-to-t from-[#0a0a0a] via-[#0a0a0a]/50 to-transparent z-10" />
 
-          {/* Inner shine */}
-          <div className="absolute top-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-white/10 to-transparent z-20" />
+        {/* Hover yellow border glow */}
+        <div className="absolute inset-0 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none z-20"
+          style={{ boxShadow: "inset 0 0 0 1px rgba(234,179,8,0.5)" }}
+        />
 
-          {/* Corner accents */}
-          <div className="absolute top-4 left-4 w-6 h-6 border-t border-l border-zinc-700 z-20 group-hover:border-yellow-500/50 transition-colors duration-300" />
-          <div className="absolute top-4 right-4 w-6 h-6 border-t border-r border-zinc-700 z-20 group-hover:border-yellow-500/50 transition-colors duration-300" />
-          <div className="absolute bottom-4 left-4 w-6 h-6 border-b border-l border-zinc-700 z-20 group-hover:border-yellow-500/50 transition-colors duration-300" />
-          <div className="absolute bottom-4 right-4 w-6 h-6 border-b border-r border-zinc-700 z-20 group-hover:border-yellow-500/50 transition-colors duration-300" />
+        {/* Corner accents */}
+        <div className="absolute top-4 left-4 w-5 h-5 border-t border-l border-zinc-700 z-20 group-hover:border-yellow-500/60 transition-colors duration-300" />
+        <div className="absolute top-4 right-4 w-5 h-5 border-t border-r border-zinc-700 z-20 group-hover:border-yellow-500/60 transition-colors duration-300" />
 
-          {/* Radial glow */}
-          <motion.div
-            variants={{ rest: { opacity: 0.3 }, hover: { opacity: 1 } }}
-            transition={{ duration: 0.4 }}
-            className="absolute -bottom-12 -right-12 w-52 h-52 bg-yellow-500/[0.07] rounded-full blur-3xl pointer-events-none z-10"
-          />
-
-          {/* Imagen de categoría */}
-          {category.imageUrl ? (
-            <motion.div
-              variants={{ rest: { scale: 1, x: 0 }, hover: { scale: 1.1, x: -4 } }}
-              transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
-              className="absolute -bottom-4 -right-4 w-52 h-52 md:w-64 md:h-64 z-10"
-            >
-              <Image
-                src={category.imageUrl}
-                alt={category.name}
-                fill
-                className="object-contain drop-shadow-[0_10px_25px_rgba(0,0,0,0.9)]"
-                unoptimized
-              />
-            </motion.div>
-          ) : (
-            /* Placeholder cuando no hay imagen */
-            <motion.div
-              variants={{ rest: { scale: 1, opacity: 0.15 }, hover: { scale: 1.05, opacity: 0.25 } }}
-              transition={{ duration: 0.4 }}
-              className="absolute -bottom-4 -right-4 w-52 h-52 md:w-64 md:h-64 z-10 flex items-center justify-center"
-            >
-              <Tag size={80} className="text-yellow-500" strokeWidth={1} />
-            </motion.div>
-          )}
-
-          {/* Text */}
-          <div className="relative z-20 p-7 flex flex-col gap-2 h-full">
-            <h3 className="text-2xl md:text-3xl font-black uppercase text-white leading-tight tracking-tight w-[55%] drop-shadow-lg">
+        {/* Text layer */}
+        <div className="absolute inset-0 z-20 flex flex-col justify-between p-6">
+          <div /> {/* spacer — keeps title pushed toward bottom */}
+          <div className="flex flex-col gap-3">
+            <h3 className="text-2xl font-black text-zinc-100 uppercase tracking-wide leading-tight drop-shadow-lg">
               {category.name}
             </h3>
-
-            <motion.div
-              variants={{ rest: { opacity: 0, y: 6 }, hover: { opacity: 1, y: 0 } }}
-              transition={{ duration: 0.22 }}
-              className="absolute bottom-6 left-7 flex items-center gap-2 text-yellow-500 text-[10px] font-black uppercase tracking-widest"
-            >
+            <span className="flex items-center gap-2 text-yellow-500 text-sm font-bold tracking-widest group-hover:text-yellow-400 transition-colors">
               Ver productos
-              <ArrowRight size={11} strokeWidth={3} />
-            </motion.div>
+              <ArrowRight size={13} strokeWidth={3} className="group-hover:translate-x-1 transition-transform duration-200" />
+            </span>
           </div>
-        </motion.div>
+        </div>
       </Link>
     </motion.div>
   );

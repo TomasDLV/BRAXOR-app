@@ -3,6 +3,7 @@ import HeroSection from "@/components/home/HeroSection";
 import TallerSection from "@/components/home/TallerSection";
 import CategorySection from "@/components/home/CategorySection";
 import BrandsStrip from "@/components/home/BrandsStrip";
+import LocationSection from "@/components/home/LocationSection";
 import FinalCTA from "@/components/home/FinalCTA";
 
 export const dynamic = "force-dynamic";
@@ -32,12 +33,38 @@ export default async function Home() {
   }));
 
   return (
-    <main className="flex flex-col w-full min-h-screen bg-[#0d0d0d] overflow-x-hidden">
-      <HeroSection />
+    <main
+      className="flex flex-col relative"
+      style={{
+        backgroundImage: "url('/images/background_concrete.jpg')",
+        backgroundSize: "cover",
+        backgroundAttachment: "fixed",
+        backgroundPosition: "center",
+        backgroundColor: "#0a0a0a",
+      }}
+    >
+      {/* id="hero-section" → SnapController target */}
+      <div id="hero-section">
+        <HeroSection />
+      </div>
+
+      {/* TallerSection excluded from snap — internal sticky scrolltelling */}
       <TallerSection />
-      <CategorySection categories={serialized} />
+
+      {/* id="categories-section" → SnapController target */}
+      <div id="categories-section">
+        <CategorySection categories={serialized} />
+      </div>
+
       <BrandsStrip brands={serializedBrands} />
-      <FinalCTA />
+
+      {/* LocationSection carries id="location-section" internally */}
+      <LocationSection />
+
+      {/* id="cta-section" → SnapController target */}
+      <div id="cta-section">
+        <FinalCTA />
+      </div>
     </main>
   );
 }

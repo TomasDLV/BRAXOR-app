@@ -2,4 +2,11 @@
 
 body {
   @apply bg-zinc-950 text-slate-50 antialiased;
+  overflow-x: hidden; /* Prevents horizontal scroll at viewport level without breaking position:sticky */
+}
+
+/* Infinite marquee for BrandsStrip */
+@keyframes braxxor-marquee {
+  from { transform: translateX(0); }
+  to   { transform: translateX(-50%); }
 }

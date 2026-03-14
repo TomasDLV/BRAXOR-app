@@ -9,13 +9,14 @@ const VP = { once: true, margin: "-80px" };
 
 export default function FinalCTA() {
   return (
-    <section className="relative w-full py-24 md:py-32 overflow-hidden bg-[#0a0a0a]">
+    <section className="relative w-full h-screen flex items-center justify-center overflow-hidden bg-[#0a0a0a]">
       {/* Taller image — blurred background */}
       <div className="absolute inset-0">
         <Image
           src="/images/taller.jpg"
           alt=""
           fill
+          sizes="100vw"
           className="object-cover object-center opacity-20"
           aria-hidden
         />

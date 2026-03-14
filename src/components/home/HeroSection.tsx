@@ -26,6 +26,7 @@ export default function HeroSection() {
           src="/images/taller.jpg"
           alt="Showroom Bräxor Off-Road"
           fill
+          sizes="100vw"
           priority
           className="object-cover object-center"
         />

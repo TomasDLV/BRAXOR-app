@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
+import SmoothScroller from "@/components/layout/SmoothScroller";
 
 export const metadata: Metadata = {
   title: "BRÄXOR | Equipamiento Off-Road",
@@ -16,9 +17,11 @@ export default function RootLayout({
   return (
     <html lang="es">
       <body className="antialiased bg-[#0d0d0d] text-white">
-        <Navbar />
-        {children}
-        <Footer />
+        <SmoothScroller>
+          <Navbar />
+          {children}
+          <Footer />
+        </SmoothScroller>
       </body>
     </html>
   );
