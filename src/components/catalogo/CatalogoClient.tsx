@@ -8,6 +8,7 @@ import {
   Search, Zap, Star, ArrowRight, ImageOff, LayoutGrid,
   SlidersHorizontal, X,
 } from "lucide-react";
+import { CategoryIcon } from "@/lib/category-icons";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -28,6 +29,7 @@ export interface CatalogCategory {
   id: string;
   name: string;
   imageUrl: string | null;
+  icon: string | null;
 }
 
 export interface CatalogBrand {
@@ -231,7 +233,13 @@ export default function CatalogoClient({
                 }`}
               >
                 <div className="w-7 h-7 rounded-full bg-zinc-800 border border-zinc-700 flex items-center justify-center flex-shrink-0 overflow-hidden">
-                  {cat.imageUrl ? (
+                  {cat.icon ? (
+                    <CategoryIcon
+                      name={cat.icon}
+                      size={13}
+                      className={activeCategory === cat.name ? "text-yellow-400" : "text-zinc-500"}
+                    />
+                  ) : cat.imageUrl ? (
                     <Image src={cat.imageUrl} alt={cat.name} width={28} height={28} className="object-contain p-1" unoptimized />
                   ) : (
                     <span className="text-zinc-500 text-[9px] font-black">{cat.name[0]}</span>
@@ -426,7 +434,13 @@ export default function CatalogoClient({
                       }`}
                     >
                       <div className="w-7 h-7 rounded-full bg-zinc-800 border border-zinc-700 flex items-center justify-center flex-shrink-0 overflow-hidden">
-                        {cat.imageUrl ? (
+                        {cat.icon ? (
+                          <CategoryIcon
+                            name={cat.icon}
+                            size={13}
+                            className={activeCategory === cat.name ? "text-yellow-400" : "text-zinc-500"}
+                          />
+                        ) : cat.imageUrl ? (
                           <Image src={cat.imageUrl} alt={cat.name} width={28} height={28} className="object-contain p-1" unoptimized />
                         ) : (
                           <span className="text-zinc-500 text-[9px] font-black">{cat.name[0]}</span>

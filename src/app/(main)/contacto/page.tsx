@@ -154,38 +154,24 @@ export default function ContactoPage() {
               </a>
             </motion.div>
 
-            {/* Map / Showroom placeholder */}
+            {/* Map */}
             <motion.div
               variants={fadeUp}
               initial="hidden"
               whileInView="visible"
               viewport={VIEWPORT}
               custom={0.15}
-              className="relative rounded-2xl overflow-hidden border border-zinc-800 bg-[#111] aspect-[4/3]"
+              className="relative rounded-2xl overflow-hidden border border-zinc-800 aspect-[4/3]"
             >
-              {/* Carbon texture inside */}
-              <div
-                className="absolute inset-0 pointer-events-none opacity-[0.06]"
-                style={{
-                  backgroundImage: `repeating-linear-gradient(45deg,#fff 0px,#fff 1px,transparent 1px,transparent 6px),repeating-linear-gradient(-45deg,#fff 0px,#fff 1px,transparent 1px,transparent 6px)`,
-                }}
+              <iframe
+                src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d14244.86366951376!2d-65.32745361328126!3d-26.801252751033335!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x942242ec5f17f463%3A0x4d47d3ffc9f975af!2sRotonda%20Horco%20Molle!5e0!3m2!1ses!2sar!4v1773501182925!5m2!1ses!2sar"
+                className="absolute inset-0 w-full h-full"
+                style={{ border: 0, /* filter: "grayscale(1) invert(0.9) contrast(0.85)" */ }}
+                allowFullScreen
+                loading="lazy"
+                referrerPolicy="no-referrer-when-downgrade"
+                title="Ubicación Bräxor Off-Road"
               />
-              <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(234,179,8,0.04)_0%,transparent_70%)]" />
-
-              <div className="relative z-10 flex flex-col items-center justify-center h-full gap-3 p-6 text-center">
-                <div className="w-14 h-14 bg-yellow-500/10 border border-yellow-500/20 rounded-2xl flex items-center justify-center">
-                  <MapPin size={24} className="text-yellow-500" strokeWidth={1.5} />
-                </div>
-                <p className="text-white font-black uppercase tracking-widest text-sm">
-                  Showroom Bräxor
-                </p>
-                <p className="text-zinc-600 text-xs uppercase tracking-widest">
-                  Yerba Buena · Tucumán
-                </p>
-                <p className="text-zinc-800 text-[10px] uppercase tracking-widest mt-2">
-                  [Imagen / Mapa del local]
-                </p>
-              </div>
             </motion.div>
           </div>
 

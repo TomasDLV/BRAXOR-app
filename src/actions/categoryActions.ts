@@ -10,10 +10,11 @@ export async function createCategory(
 ): Promise<ActionState> {
   const name = (formData.get("name") as string)?.trim();
   const imageUrl = (formData.get("imageUrl") as string)?.trim() || null;
+  const icon = (formData.get("icon") as string)?.trim() || null;
   if (!name) return { success: false, message: "El nombre es obligatorio." };
 
   try {
-    await prisma.category.create({ data: { name, imageUrl } });
+    await prisma.category.create({ data: { name, imageUrl, icon } });
     revalidatePath("/admin/categorias");
     revalidatePath("/");
     revalidatePath("/catalogo");
@@ -34,11 +35,12 @@ export async function updateCategory(
   const id = formData.get("id") as string;
   const name = (formData.get("name") as string)?.trim();
   const imageUrl = (formData.get("imageUrl") as string)?.trim() || null;
+  const icon = (formData.get("icon") as string)?.trim() || null;
   if (!id) return { success: false, message: "ID inválido." };
   if (!name) return { success: false, message: "El nombre es obligatorio." };
 
   try {
-    await prisma.category.update({ where: { id }, data: { name, imageUrl } });
+    await prisma.category.update({ where: { id }, data: { name, imageUrl, icon } });
     revalidatePath("/admin/categorias");
     revalidatePath("/");
     revalidatePath("/catalogo");

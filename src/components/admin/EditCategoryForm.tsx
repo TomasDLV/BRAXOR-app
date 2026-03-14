@@ -7,6 +7,7 @@ import { updateCategory } from "@/actions/categoryActions";
 import type { ActionState } from "@/types/actions";
 import { Save, CheckCircle2, AlertCircle, Tag, ImageOff } from "lucide-react";
 import ProductImageUploader from "@/components/admin/ProductImageUploader";
+import CategoryIconPicker from "@/components/admin/CategoryIconPicker";
 import Image from "next/image";
 
 function SubmitButton() {
@@ -30,11 +31,12 @@ function SubmitButton() {
 export default function EditCategoryForm({
   category,
 }: {
-  category: { id: string; name: string; imageUrl: string | null };
+  category: { id: string; name: string; imageUrl: string | null; icon: string | null };
 }) {
   const router = useRouter();
   const [state, formAction] = useActionState<ActionState, FormData>(updateCategory, null);
   const [imageUrl, setImageUrl] = useState(category.imageUrl ?? "");
+  const [icon, setIcon] = useState(category.icon ?? "");
 
   useEffect(() => {
     if (state?.success) {
@@ -70,6 +72,7 @@ export default function EditCategoryForm({
       <form action={formAction} className="space-y-5">
         <input type="hidden" name="id" value={category.id} />
         <input type="hidden" name="imageUrl" value={imageUrl} />
+        <input type="hidden" name="icon" value={icon} />
 
         {/* Nombre */}
         <div className="flex flex-col gap-1.5">
@@ -123,6 +126,9 @@ export default function EditCategoryForm({
           </span>
           <ProductImageUploader onUploadComplete={setImageUrl} />
         </div>
+
+        {/* Ícono */}
+        <CategoryIconPicker value={icon} onChange={setIcon} />
 
         <div className="flex items-center gap-4 pt-3 border-t border-zinc-800">
           <SubmitButton />

@@ -11,6 +11,7 @@ model Category {
   id          String    @id @default(cuid())
   name        String    @unique
   imageUrl    String?
+  icon        String?
   showInHome  Boolean   @default(true)
   products    Product[]
   createdAt   DateTime  @default(now())

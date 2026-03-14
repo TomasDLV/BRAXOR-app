@@ -30,11 +30,13 @@ export default function BrandForm() {
   const [state, formAction] = useActionState<ActionState, FormData>(createBrand, null);
   const formRef = useRef<HTMLFormElement>(null);
   const [logoUrl, setLogoUrl] = useState("");
+  const [uploaderKey, setUploaderKey] = useState(0);
 
   useEffect(() => {
     if (state?.success) {
       formRef.current?.reset();
       setLogoUrl("");
+      setUploaderKey((k) => k + 1);
       const t = setTimeout(() => setOpen(false), 1500);
       return () => clearTimeout(t);
     }
@@ -98,7 +100,7 @@ export default function BrandForm() {
             </div>
 
             {/* Logo upload */}
-            <ProductImageUploader onUploadComplete={setLogoUrl} />
+            <ProductImageUploader key={uploaderKey} onUploadComplete={setLogoUrl} />
             <input type="hidden" name="logoUrl" value={logoUrl} />
 
             <div className="flex items-center gap-4 pt-2 border-t border-zinc-800">

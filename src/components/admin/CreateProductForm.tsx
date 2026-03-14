@@ -40,12 +40,13 @@ export default function CreateProductForm({ categories, brands }: Props) {
   const [state, formAction] = useActionState<ActionState, FormData>(createProduct, null);
   const formRef = useRef<HTMLFormElement>(null);
   const [imageUrl, setImageUrl] = useState("");
+  const [uploaderKey, setUploaderKey] = useState(0);
 
   useEffect(() => {
     if (state?.success) {
       formRef.current?.reset();
       setImageUrl("");
-      // Auto-close form after success
+      setUploaderKey((k) => k + 1);
       const t = setTimeout(() => setOpen(false), 1800);
       return () => clearTimeout(t);
     }
@@ -170,7 +171,7 @@ export default function CreateProductForm({ categories, brands }: Props) {
             </div>
 
             {/* Image Upload */}
-            <ProductImageUploader onUploadComplete={setImageUrl} />
+            <ProductImageUploader key={uploaderKey} onUploadComplete={setImageUrl} />
             <input type="hidden" name="imageUrl" value={imageUrl} />
 
             {/* Toggles */}

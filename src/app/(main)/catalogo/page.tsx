@@ -41,6 +41,7 @@ export default async function CatalogoPage({
     id: c.id,
     name: c.name,
     imageUrl: c.imageUrl,
+    icon: c.icon,
   }));
 
   const serializedBrands = brands.map((b) => ({

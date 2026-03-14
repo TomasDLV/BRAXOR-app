@@ -6,6 +6,7 @@ import { createCategory } from "@/actions/categoryActions";
 import type { ActionState } from "@/types/actions";
 import { Plus, X, CheckCircle2, AlertCircle, ChevronDown, Tag } from "lucide-react";
 import ProductImageUploader from "@/components/admin/ProductImageUploader";
+import CategoryIconPicker from "@/components/admin/CategoryIconPicker";
 
 function SubmitButton() {
   const { pending } = useFormStatus();
@@ -30,11 +31,15 @@ export default function CategoryForm() {
   const [state, formAction] = useActionState<ActionState, FormData>(createCategory, null);
   const formRef = useRef<HTMLFormElement>(null);
   const [imageUrl, setImageUrl] = useState("");
+  const [icon, setIcon] = useState("");
+  const [uploaderKey, setUploaderKey] = useState(0);
 
   useEffect(() => {
     if (state?.success) {
       formRef.current?.reset();
       setImageUrl("");
+      setIcon("");
+      setUploaderKey((k) => k + 1);
       const t = setTimeout(() => setOpen(false), 1500);
       return () => clearTimeout(t);
     }
@@ -56,7 +61,7 @@ export default function CategoryForm() {
 
       <div
         className={`overflow-hidden transition-all duration-300 ease-in-out ${
-          open ? "max-h-[600px] opacity-100 mt-5" : "max-h-0 opacity-0"
+          open ? "max-h-[900px] opacity-100 mt-5" : "max-h-0 opacity-0"
         }`}
       >
         <div className="bg-[#1a1a1a] border border-zinc-800 rounded-2xl p-6 md:p-8">
@@ -98,8 +103,12 @@ export default function CategoryForm() {
             </div>
 
             {/* Imagen */}
-            <ProductImageUploader onUploadComplete={setImageUrl} />
+            <ProductImageUploader key={uploaderKey} onUploadComplete={setImageUrl} />
             <input type="hidden" name="imageUrl" value={imageUrl} />
+
+            {/* Ícono */}
+            <CategoryIconPicker value={icon} onChange={setIcon} />
+            <input type="hidden" name="icon" value={icon} />
 
             <div className="flex items-center gap-4 pt-2 border-t border-zinc-800">
               <SubmitButton />

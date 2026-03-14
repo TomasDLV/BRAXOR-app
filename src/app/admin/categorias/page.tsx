@@ -5,6 +5,7 @@ import { Tag, Layers, Pencil, ImageOff } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import ToggleCategoryButton from "@/components/admin/ToggleCategoryButton";
+import { CategoryIcon } from "@/lib/category-icons";
 
 export const dynamic = "force-dynamic";
 
@@ -69,10 +70,12 @@ export default async function AdminCategoriasPage() {
               <tbody className="divide-y divide-zinc-900">
                 {categories.map((cat) => (
                   <tr key={cat.id} className="hover:bg-zinc-900/50 transition-colors group">
-                    {/* Imagen */}
+                    {/* Imagen / Ícono */}
                     <td className="pl-6 pr-4 py-4">
                       <div className="w-12 h-12 rounded-xl bg-[#0d0d0d] border border-zinc-800 flex items-center justify-center overflow-hidden flex-shrink-0">
-                        {cat.imageUrl ? (
+                        {cat.icon ? (
+                          <CategoryIcon name={cat.icon} size={22} className="text-yellow-500" />
+                        ) : cat.imageUrl ? (
                           <div className="relative w-full h-full">
                             <Image
                               src={cat.imageUrl}
@@ -92,7 +95,11 @@ export default async function AdminCategoriasPage() {
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-3">
                         <div className="w-8 h-8 rounded-lg bg-yellow-500/10 border border-yellow-500/20 flex items-center justify-center flex-shrink-0">
-                          <Tag size={13} className="text-yellow-500" strokeWidth={2} />
+                          {cat.icon ? (
+                            <CategoryIcon name={cat.icon} size={13} className="text-yellow-500" />
+                          ) : (
+                            <Tag size={13} className="text-yellow-500" strokeWidth={2} />
+                          )}
                         </div>
                         <span className="text-white font-bold">{cat.name}</span>
                       </div>

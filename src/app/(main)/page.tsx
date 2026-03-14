@@ -30,6 +30,7 @@ export default async function Home() {
   const serializedBrands = brands.map((b) => ({
     id: b.id,
     name: b.name,
+    logoUrl: b.logoUrl,
   }));
 
   return (

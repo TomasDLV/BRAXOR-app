@@ -36,7 +36,7 @@ export default async function EditCategoryPage({
           <p className="text-zinc-500 text-sm mt-1">{category.name}</p>
         </div>
 
-        <EditCategoryForm category={{ id: category.id, name: category.name, imageUrl: category.imageUrl }} />
+        <EditCategoryForm category={{ id: category.id, name: category.name, imageUrl: category.imageUrl, icon: category.icon }} />
       </div>
     </main>
   );
