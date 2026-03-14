@@ -2,7 +2,8 @@
 
 import { useActionState, useEffect, useRef, useState } from "react";
 import { useFormStatus } from "react-dom";
-import { createBrand, type ActionState } from "@/actions/brandActions";
+import { createBrand } from "@/actions/brandActions";
+import type { ActionState } from "@/types/actions";
 import { Plus, X, CheckCircle2, AlertCircle, ChevronDown, Shield } from "lucide-react";
 import ProductImageUploader from "@/components/admin/ProductImageUploader";
 

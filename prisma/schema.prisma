@@ -10,6 +10,8 @@ datasource db {
 model Category {
   id          String    @id @default(cuid())
   name        String    @unique
+  imageUrl    String?
+  showInHome  Boolean   @default(true)
   products    Product[]
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
@@ -19,6 +21,7 @@ model PartBrand {
   id          String    @id @default(cuid())
   name        String    @unique
   logoUrl     String?
+  showInHome  Boolean   @default(true)
   products    Product[]
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
@@ -45,6 +48,8 @@ model Product {
   
   isFeatured  Boolean   @default(false)
   isNew       Boolean   @default(true)
+  isActive    Boolean   @default(true)
+  showPrice   Boolean   @default(true)
   imageUrl    String?
   
   categoryId  String

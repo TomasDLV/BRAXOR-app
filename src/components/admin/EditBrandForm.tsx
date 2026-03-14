@@ -3,11 +3,12 @@
 import { useActionState, useEffect, useState } from "react";
 import { useFormStatus } from "react-dom";
 import { useRouter } from "next/navigation";
-import { updateCategory } from "@/actions/categoryActions";
+import { updateBrand } from "@/actions/brandActions";
 import type { ActionState } from "@/types/actions";
-import { Save, CheckCircle2, AlertCircle, Tag, ImageOff } from "lucide-react";
+import { Save, CheckCircle2, AlertCircle, Shield } from "lucide-react";
 import ProductImageUploader from "@/components/admin/ProductImageUploader";
 import Image from "next/image";
+import { ImageOff } from "lucide-react";
 
 function SubmitButton() {
   const { pending } = useFormStatus();
@@ -27,18 +28,18 @@ function SubmitButton() {
   );
 }
 
-export default function EditCategoryForm({
-  category,
+export default function EditBrandForm({
+  brand,
 }: {
-  category: { id: string; name: string; imageUrl: string | null };
+  brand: { id: string; name: string; logoUrl: string | null };
 }) {
   const router = useRouter();
-  const [state, formAction] = useActionState<ActionState, FormData>(updateCategory, null);
-  const [imageUrl, setImageUrl] = useState(category.imageUrl ?? "");
+  const [state, formAction] = useActionState<ActionState, FormData>(updateBrand, null);
+  const [logoUrl, setLogoUrl] = useState(brand.logoUrl ?? "");
 
   useEffect(() => {
     if (state?.success) {
-      const t = setTimeout(() => router.push("/admin/categorias"), 1500);
+      const t = setTimeout(() => router.push("/admin/marcas"), 1500);
       return () => clearTimeout(t);
     }
   }, [state, router]);
@@ -46,8 +47,8 @@ export default function EditCategoryForm({
   return (
     <div className="bg-[#1a1a1a] border border-zinc-800 rounded-2xl p-6 md:p-8">
       <h3 className="text-white font-black uppercase tracking-wide text-base mb-6 flex items-center gap-2">
-        <Tag size={16} className="text-yellow-500" strokeWidth={2.5} />
-        Editar Categoría
+        <Shield size={16} className="text-yellow-500" strokeWidth={2.5} />
+        Editar Marca
       </h3>
 
       {state && (
@@ -68,12 +69,15 @@ export default function EditCategoryForm({
       )}
 
       <form action={formAction} className="space-y-5">
-        <input type="hidden" name="id" value={category.id} />
-        <input type="hidden" name="imageUrl" value={imageUrl} />
+        <input type="hidden" name="id" value={brand.id} />
+        <input type="hidden" name="logoUrl" value={logoUrl} />
 
         {/* Nombre */}
         <div className="flex flex-col gap-1.5">
-          <label htmlFor="name" className="text-zinc-400 text-xs uppercase tracking-widest font-bold">
+          <label
+            htmlFor="name"
+            className="text-zinc-400 text-xs uppercase tracking-widest font-bold"
+          >
             Nombre <span className="text-yellow-500">*</span>
           </label>
           <input
@@ -81,23 +85,23 @@ export default function EditCategoryForm({
             name="name"
             type="text"
             required
-            defaultValue={category.name}
+            defaultValue={brand.name}
             className="bg-[#111] border border-zinc-700 text-white text-sm px-4 py-3 rounded-lg focus:outline-none focus:border-yellow-500/70 placeholder-zinc-700 transition-colors"
           />
         </div>
 
-        {/* Imagen actual */}
-        {imageUrl && (
+        {/* Logo actual */}
+        {logoUrl && (
           <div className="flex flex-col gap-1.5">
             <span className="text-zinc-400 text-xs uppercase tracking-widest font-bold">
-              Imagen actual
+              Logo actual
             </span>
             <div className="flex items-center gap-4">
               <div className="w-16 h-16 rounded-xl bg-[#111] border border-zinc-700 flex items-center justify-center overflow-hidden">
                 <div className="relative w-full h-full">
                   <Image
-                    src={imageUrl}
-                    alt={category.name}
+                    src={logoUrl}
+                    alt={brand.name}
                     fill
                     className="object-contain p-2"
                     unoptimized
@@ -106,11 +110,11 @@ export default function EditCategoryForm({
               </div>
               <button
                 type="button"
-                onClick={() => setImageUrl("")}
+                onClick={() => setLogoUrl("")}
                 className="text-zinc-600 hover:text-red-400 text-xs uppercase tracking-widest font-bold transition-colors flex items-center gap-1.5 cursor-pointer"
               >
                 <ImageOff size={13} strokeWidth={2} />
-                Quitar imagen
+                Quitar logo
               </button>
             </div>
           </div>
@@ -119,16 +123,16 @@ export default function EditCategoryForm({
         {/* Uploader */}
         <div className="flex flex-col gap-1.5">
           <span className="text-zinc-400 text-xs uppercase tracking-widest font-bold">
-            {imageUrl ? "Reemplazar imagen" : "Subir imagen"}
+            {logoUrl ? "Reemplazar logo" : "Subir logo"}
           </span>
-          <ProductImageUploader onUploadComplete={setImageUrl} />
+          <ProductImageUploader onUploadComplete={setLogoUrl} />
         </div>
 
         <div className="flex items-center gap-4 pt-3 border-t border-zinc-800">
           <SubmitButton />
           <button
             type="button"
-            onClick={() => router.push("/admin/categorias")}
+            onClick={() => router.push("/admin/marcas")}
             className="text-zinc-600 hover:text-zinc-300 text-xs uppercase tracking-widest font-bold transition-colors cursor-pointer"
           >
             Cancelar

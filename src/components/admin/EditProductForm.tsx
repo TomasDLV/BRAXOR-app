@@ -3,7 +3,8 @@
 import { useActionState, useEffect, useRef, useState } from "react";
 import { useFormStatus } from "react-dom";
 import { useRouter } from "next/navigation";
-import { updateProduct, type ActionState } from "@/actions/productActions";
+import { updateProduct } from "@/actions/productActions";
+import type { ActionState } from "@/types/actions";
 import { Save, CheckCircle2, AlertCircle } from "lucide-react";
 import ProductImageUploader from "@/components/admin/ProductImageUploader";
 
