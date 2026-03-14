@@ -3,14 +3,6 @@ import CatalogoClient from "@/components/catalogo/CatalogoClient";
 
 export const dynamic = "force-dynamic";
 
-// Maps URL ?categoria= param to exact DB category names
-const PARAM_TO_CATEGORY: Record<string, string> = {
-  llantas: "Llantas",
-  suspension: "Suspensión",
-  defensas: "Defensas",
-  iluminacion: "Iluminación",
-};
-
 export default async function CatalogoPage({
   searchParams,
 }: {
@@ -18,17 +10,20 @@ export default async function CatalogoPage({
 }) {
   const { categoria } = await searchParams;
 
-  const initialCategory =
-    categoria && PARAM_TO_CATEGORY[categoria.toLowerCase()]
-      ? PARAM_TO_CATEGORY[categoria.toLowerCase()]
-      : "Todos";
+  const [products, categories] = await Promise.all([
+    prisma.product.findMany({
+      include: { category: true, brand: true },
+      orderBy: { createdAt: "desc" },
+    }),
+    prisma.category.findMany({ orderBy: { name: "asc" } }),
+  ]);
 
-  const products = await prisma.product.findMany({
-    include: { category: true, brand: true },
-    orderBy: { createdAt: "desc" },
-  });
+  // Resuelve el param de URL contra las categorías reales (case-insensitive)
+  const matchedCategory = categoria
+    ? categories.find((c) => c.name.toLowerCase() === categoria.toLowerCase())?.name ?? "Todos"
+    : "Todos";
 
-  const serialized = products.map((p) => ({
+  const serializedProducts = products.map((p) => ({
     id: p.id,
     name: p.name,
     sku: p.sku,
@@ -40,5 +35,17 @@ export default async function CatalogoPage({
     brand: { name: p.brand.name },
   }));
 
-  return <CatalogoClient products={serialized} initialCategory={initialCategory} />;
+  const serializedCategories = categories.map((c) => ({
+    id: c.id,
+    name: c.name,
+    imageUrl: c.imageUrl,
+  }));
+
+  return (
+    <CatalogoClient
+      products={serializedProducts}
+      categories={serializedCategories}
+      initialCategory={matchedCategory}
+    />
+  );
 }

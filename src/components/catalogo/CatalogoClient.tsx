@@ -4,7 +4,7 @@ import { useState, useMemo } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
-import { Search, Zap, Star, ArrowRight, SlidersHorizontal, ImageOff } from "lucide-react";
+import { Search, Zap, Star, ArrowRight, SlidersHorizontal, ImageOff, LayoutGrid } from "lucide-react";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -20,9 +20,13 @@ export interface CatalogProduct {
   brand: { name: string };
 }
 
-type CategoryFilter = "Todos" | string;
+export interface CatalogCategory {
+  id: string;
+  name: string;
+  imageUrl: string | null;
+}
 
-const FIXED_CATEGORIES = ["Todos", "Llantas", "Suspensión", "Defensas", "Iluminación"];
+type CategoryFilter = "Todos" | string;
 
 const formatARS = (n: number) =>
   new Intl.NumberFormat("es-AR", {
@@ -35,19 +39,15 @@ const formatARS = (n: number) =>
 
 export default function CatalogoClient({
   products,
+  categories,
   initialCategory = "Todos",
 }: {
   products: CatalogProduct[];
+  categories: CatalogCategory[];
   initialCategory?: string;
 }) {
   const [query, setQuery] = useState("");
   const [activeCategory, setActiveCategory] = useState<CategoryFilter>(initialCategory);
-
-  // Build category list from DB categories + fixed order
-  const categories = useMemo(() => {
-    const dbCats = new Set(products.map((p) => p.category.name));
-    return FIXED_CATEGORIES.filter((c) => c === "Todos" || dbCats.has(c));
-  }, [products]);
 
   const filtered = useMemo(() => {
     const q = query.toLowerCase().trim();
@@ -106,18 +106,46 @@ export default function CatalogoClient({
 
           <div className="flex items-center gap-2 flex-wrap">
             <SlidersHorizontal size={16} className="text-zinc-600 flex-shrink-0 hidden md:block" />
+
+            {/* Botón "Todos" */}
+            <motion.button
+              key="Todos"
+              onClick={() => setActiveCategory("Todos")}
+              whileTap={{ scale: 0.94 }}
+              className={`flex items-center gap-2 px-4 py-2 rounded-md text-xs font-bold uppercase tracking-widest transition-colors cursor-pointer whitespace-nowrap ${
+                activeCategory === "Todos"
+                  ? "bg-yellow-500 text-black shadow-[0_0_14px_rgba(234,179,8,0.45)]"
+                  : "bg-zinc-900 text-zinc-400 border border-zinc-800 hover:border-zinc-600 hover:text-white"
+              }`}
+            >
+              <LayoutGrid size={12} strokeWidth={2.5} />
+              Todos
+            </motion.button>
+
+            {/* Categorías dinámicas */}
             {categories.map((cat) => (
               <motion.button
-                key={cat}
-                onClick={() => setActiveCategory(cat)}
+                key={cat.id}
+                onClick={() => setActiveCategory(cat.name)}
                 whileTap={{ scale: 0.94 }}
-                className={`px-4 py-2 rounded-md text-xs font-bold uppercase tracking-widest transition-colors cursor-pointer whitespace-nowrap ${
-                  activeCategory === cat
+                className={`flex items-center gap-2 px-4 py-2 rounded-md text-xs font-bold uppercase tracking-widest transition-colors cursor-pointer whitespace-nowrap ${
+                  activeCategory === cat.name
                     ? "bg-yellow-500 text-black shadow-[0_0_14px_rgba(234,179,8,0.45)]"
                     : "bg-zinc-900 text-zinc-400 border border-zinc-800 hover:border-zinc-600 hover:text-white"
                 }`}
               >
-                {cat}
+                {cat.imageUrl ? (
+                  <span className="relative w-4 h-4 flex-shrink-0">
+                    <Image
+                      src={cat.imageUrl}
+                      alt={cat.name}
+                      fill
+                      className="object-contain"
+                      unoptimized
+                    />
+                  </span>
+                ) : null}
+                {cat.name}
               </motion.button>
             ))}
           </div>
