@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState, useEffect, useRef, useState } from "react";
+import React, { useActionState, useEffect, useRef, useState } from "react";
 import { useFormStatus } from "react-dom";
 import { createCategory } from "@/actions/categoryActions";
 import type { ActionState } from "@/types/actions";
@@ -26,7 +26,7 @@ function SubmitButton() {
   );
 }
 
-export default function CategoryForm() {
+export default function CategoryForm({ children }: { children?: React.ReactNode }) {
   const [open, setOpen] = useState(false);
   const [state, formAction] = useActionState<ActionState, FormData>(createCategory, null);
   const formRef = useRef<HTMLFormElement>(null);
@@ -47,17 +47,20 @@ export default function CategoryForm() {
 
   return (
     <div className="w-full">
-      <button
-        onClick={() => setOpen((v) => !v)}
-        className="flex items-center gap-2 bg-zinc-900 hover:bg-zinc-800 border border-zinc-700 text-white font-bold uppercase tracking-widest text-xs px-5 py-2.5 rounded-lg transition-colors cursor-pointer"
-      >
-        {open ? <X size={14} strokeWidth={2.5} /> : <Plus size={14} strokeWidth={2.5} />}
-        {open ? "Cerrar" : "Nueva Categoría"}
-        <ChevronDown
-          size={14}
-          className={`ml-1 transition-transform duration-200 ${open ? "rotate-180" : ""}`}
-        />
-      </button>
+      <div className="flex items-center gap-3">
+        {children}
+        <button
+          onClick={() => setOpen((v) => !v)}
+          className="flex items-center gap-2 bg-zinc-900 hover:bg-zinc-800 border border-zinc-700 text-white font-bold uppercase tracking-widest text-xs px-5 py-2.5 rounded-lg transition-colors cursor-pointer flex-shrink-0"
+        >
+          {open ? <X size={14} strokeWidth={2.5} /> : <Plus size={14} strokeWidth={2.5} />}
+          {open ? "Cerrar" : "Nueva Categoría"}
+          <ChevronDown
+            size={14}
+            className={`ml-1 transition-transform duration-200 ${open ? "rotate-180" : ""}`}
+          />
+        </button>
+      </div>
 
       <div
         className={`overflow-hidden transition-all duration-300 ease-in-out ${

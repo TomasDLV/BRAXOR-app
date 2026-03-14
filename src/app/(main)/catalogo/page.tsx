@@ -10,14 +10,15 @@ export default async function CatalogoPage({
 }) {
   const { categoria } = await searchParams;
 
-  const [products, categories, brands] = await Promise.all([
+  const [products, categories, brands, vehicles] = await Promise.all([
     prisma.product.findMany({
       where: { isActive: true },
-      include: { category: true, brand: true },
+      include: { category: true, brand: true, vehicles: true },
       orderBy: { createdAt: "desc" },
     }),
     prisma.category.findMany({ orderBy: { name: "asc" } }),
     prisma.partBrand.findMany({ orderBy: { name: "asc" } }),
+    prisma.vehicle.findMany({ orderBy: [{ make: "asc" }, { model: "asc" }] }),
   ]);
 
   const matchedCategory = categoria
@@ -35,6 +36,7 @@ export default async function CatalogoPage({
     isFeatured: p.isFeatured,
     category: { name: p.category.name },
     brand: { name: p.brand.name },
+    vehicleIds: p.vehicles.map((v) => v.id),
   }));
 
   const serializedCategories = categories.map((c) => ({
@@ -50,11 +52,20 @@ export default async function CatalogoPage({
     logoUrl: b.logoUrl,
   }));
 
+  const serializedVehicles = vehicles.map((v) => ({
+    id: v.id,
+    make: v.make,
+    model: v.model,
+    yearStart: v.yearStart,
+    yearEnd: v.yearEnd,
+  }));
+
   return (
     <CatalogoClient
       products={serializedProducts}
       categories={serializedCategories}
       brands={serializedBrands}
+      vehicles={serializedVehicles}
       initialCategory={matchedCategory}
     />
   );

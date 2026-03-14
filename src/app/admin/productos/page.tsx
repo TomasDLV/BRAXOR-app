@@ -1,12 +1,16 @@
 import { prisma } from "@/lib/prisma";
 import CreateProductForm from "@/components/admin/CreateProductForm";
 import DeleteProductButton from "@/components/admin/DeleteProductButton";
+import AdminSearchInput from "@/components/admin/AdminSearchInput";
+import AdminPagination from "@/components/admin/AdminPagination";
 import { Package, ImageOff, Pencil } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { ToggleActiveButton, TogglePriceButton } from "@/components/admin/ToggleProductButton";
 
 export const dynamic = "force-dynamic";
+
+const PAGE_SIZE = 15;
 
 const formatARS = (n: number) =>
   new Intl.NumberFormat("es-AR", {
@@ -15,14 +19,36 @@ const formatARS = (n: number) =>
     maximumFractionDigits: 0,
   }).format(n);
 
-export default async function AdminProductosPage() {
-  const [products, categories, brands] = await Promise.all([
+export default async function AdminProductosPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ q?: string; page?: string }>;
+}) {
+  const { q = "", page = "1" } = await searchParams;
+  const currentPage = Math.max(1, parseInt(page, 10) || 1);
+  const skip = (currentPage - 1) * PAGE_SIZE;
+
+  const where = q
+    ? {
+        OR: [
+          { name: { contains: q, mode: "insensitive" as const } },
+          { sku: { contains: q, mode: "insensitive" as const } },
+        ],
+      }
+    : {};
+
+  const [products, total, categories, brands, vehicles] = await Promise.all([
     prisma.product.findMany({
+      where,
       include: { category: true, brand: true },
       orderBy: { createdAt: "desc" },
+      skip,
+      take: PAGE_SIZE,
     }),
+    prisma.product.count({ where }),
     prisma.category.findMany({ orderBy: { name: "asc" } }),
     prisma.partBrand.findMany({ orderBy: { name: "asc" } }),
+    prisma.vehicle.findMany({ orderBy: [{ make: "asc" }, { model: "asc" }] }),
   ]);
 
   return (
@@ -36,13 +62,15 @@ export default async function AdminProductosPage() {
           Productos
         </h1>
         <p className="text-zinc-500 text-sm mt-1">
-          {products.length} producto{products.length !== 1 ? "s" : ""} en catálogo.
+          {total} producto{total !== 1 ? "s" : ""} en catálogo.
         </p>
       </div>
 
-      {/* Create form */}
+      {/* Create form + Search */}
       <div className="mb-8">
-        <CreateProductForm categories={categories} brands={brands} />
+        <CreateProductForm categories={categories} brands={brands} vehicles={vehicles}>
+          <AdminSearchInput placeholder="Buscar por nombre o SKU..." />
+        </CreateProductForm>
       </div>
 
       {/* Table */}
@@ -51,16 +79,18 @@ export default async function AdminProductosPage() {
           <h2 className="text-white font-black uppercase tracking-wide text-sm">
             Inventario completo
           </h2>
-          <span className="text-zinc-600 text-xs font-mono">{products.length} registros</span>
+          <span className="text-zinc-600 text-xs font-mono">{total} registros</span>
         </div>
 
         {products.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-24 gap-3 text-center">
             <Package size={36} className="text-zinc-800" />
             <p className="text-zinc-600 text-sm font-semibold uppercase tracking-widest">
-              No hay productos todavía.
+              {q ? `Sin resultados para "${q}".` : "No hay productos todavía."}
             </p>
-            <p className="text-zinc-700 text-xs">Usá el formulario de arriba para agregar el primero.</p>
+            {!q && (
+              <p className="text-zinc-700 text-xs">Usá el formulario de arriba para agregar el primero.</p>
+            )}
           </div>
         ) : (
           <div className="overflow-x-auto">
@@ -183,6 +213,8 @@ export default async function AdminProductosPage() {
             </table>
           </div>
         )}
+
+        <AdminPagination total={total} perPage={PAGE_SIZE} />
       </div>
     </main>
   );

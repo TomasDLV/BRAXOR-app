@@ -2,7 +2,7 @@ import { prisma } from "@/lib/prisma";
 import { notFound } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
-import { ArrowLeft, Zap, Star, MessageCircle, ImageOff, Tag } from "lucide-react";
+import { ArrowLeft, Zap, Star, MessageCircle, ImageOff, Tag, Car } from "lucide-react";
 
 const WA_NUMBER = "5493816000000"; // ← Reemplazar con el número real
 
@@ -22,7 +22,11 @@ export default async function ProductDetailPage({
 
   const product = await prisma.product.findUnique({
     where: { id },
-    include: { category: true, brand: true },
+    include: {
+      category: true,
+      brand: true,
+      vehicles: { orderBy: [{ make: "asc" }, { model: "asc" }] },
+    },
   });
 
   if (!product) notFound();
@@ -135,12 +139,20 @@ export default async function ProductDetailPage({
               <p className="text-zinc-600 text-[10px] uppercase tracking-[0.25em] font-bold mb-1">
                 Precio de referencia
               </p>
-              <p className="text-5xl md:text-6xl font-black text-yellow-500 leading-none drop-shadow-[0_0_20px_rgba(234,179,8,0.35)]">
-                {formatARS(Number(product.price))}
-              </p>
-              <p className="text-zinc-700 text-xs mt-2">
-                * Consultá disponibilidad y precio actualizado por WhatsApp
-              </p>
+              {product.showPrice && product.price ? (
+                <>
+                  <p className="text-5xl md:text-6xl font-black text-yellow-500 leading-none drop-shadow-[0_0_20px_rgba(234,179,8,0.35)]">
+                    {formatARS(Number(product.price))}
+                  </p>
+                  <p className="text-zinc-700 text-xs mt-2">
+                    * Consultá disponibilidad y precio actualizado por WhatsApp
+                  </p>
+                </>
+              ) : (
+                <p className="text-3xl font-black text-zinc-400 uppercase tracking-widest leading-none">
+                  Consultá precio
+                </p>
+              )}
             </div>
 
             {/* Description */}
@@ -150,6 +162,45 @@ export default async function ProductDetailPage({
                   Descripción
                 </p>
                 <p className="text-zinc-300 text-sm leading-relaxed">{product.description}</p>
+              </div>
+            )}
+
+            {/* Vehículos compatibles */}
+            {product.vehicles.length > 0 && (
+              <div className="bg-[#111] border border-zinc-800 rounded-xl p-5">
+                <div className="flex items-center gap-2 mb-3">
+                  <Car size={13} className="text-yellow-500" strokeWidth={2.5} />
+                  <p className="text-zinc-400 text-[10px] uppercase tracking-widest font-bold">
+                    Vehículos compatibles
+                  </p>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  {Object.entries(
+                    product.vehicles.reduce<Record<string, typeof product.vehicles>>((acc, v) => {
+                      (acc[v.make] ??= []).push(v);
+                      return acc;
+                    }, {})
+                  ).map(([make, models]) => (
+                    <div key={make} className="flex flex-col gap-1.5">
+                      <p className="text-zinc-600 text-[9px] font-black uppercase tracking-widest">{make}</p>
+                      <div className="flex flex-wrap gap-1.5">
+                        {models.map((v) => (
+                          <span
+                            key={v.id}
+                            className="flex items-center gap-1.5 bg-zinc-900 border border-zinc-700 text-zinc-300 text-xs font-semibold px-2.5 py-1 rounded-lg"
+                          >
+                            {v.model}
+                            {(v.yearStart || v.yearEnd) && (
+                              <span className="text-zinc-600 font-mono text-[10px]">
+                                {v.yearStart ?? "?"}–{v.yearEnd ?? "hoy"}
+                              </span>
+                            )}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+                </div>
               </div>
             )}
 

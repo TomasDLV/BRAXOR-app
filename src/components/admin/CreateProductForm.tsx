@@ -1,15 +1,20 @@
 "use client";
 
-import { useActionState, useEffect, useRef, useState } from "react";
+import React, { useActionState, useEffect, useRef, useState } from "react";
 import { useFormStatus } from "react-dom";
 import { createProduct } from "@/actions/productActions";
 import type { ActionState } from "@/types/actions";
 import { Plus, X, CheckCircle2, AlertCircle, ChevronDown } from "lucide-react";
 import ProductImageUploader from "@/components/admin/ProductImageUploader";
+import VehicleMultiSelect from "@/components/admin/VehicleMultiSelect";
+
+type Vehicle = { id: string; make: string; model: string; yearStart: number | null; yearEnd: number | null };
 
 interface Props {
   categories: { id: string; name: string }[];
   brands: { id: string; name: string }[];
+  vehicles: Vehicle[];
+  children?: React.ReactNode;
 }
 
 function SubmitButton() {
@@ -35,7 +40,7 @@ function SubmitButton() {
   );
 }
 
-export default function CreateProductForm({ categories, brands }: Props) {
+export default function CreateProductForm({ categories, brands, vehicles, children }: Props) {
   const [open, setOpen] = useState(false);
   const [state, formAction] = useActionState<ActionState, FormData>(createProduct, null);
   const formRef = useRef<HTMLFormElement>(null);
@@ -54,23 +59,26 @@ export default function CreateProductForm({ categories, brands }: Props) {
 
   return (
     <div className="w-full">
-      {/* Toggle button */}
-      <button
-        onClick={() => setOpen((v) => !v)}
-        className="flex items-center gap-2 bg-zinc-900 hover:bg-zinc-800 border border-zinc-700 text-white font-bold uppercase tracking-widest text-xs px-5 py-2.5 rounded-lg transition-colors cursor-pointer"
-      >
-        {open ? <X size={14} strokeWidth={2.5} /> : <Plus size={14} strokeWidth={2.5} />}
-        {open ? "Cerrar" : "Nuevo Producto"}
-        <ChevronDown
-          size={14}
-          className={`ml-1 transition-transform duration-200 ${open ? "rotate-180" : ""}`}
-        />
-      </button>
+      {/* Toggle button row */}
+      <div className="flex items-center gap-3">
+        {children}
+        <button
+          onClick={() => setOpen((v) => !v)}
+          className="flex items-center gap-2 bg-zinc-900 hover:bg-zinc-800 border border-zinc-700 text-white font-bold uppercase tracking-widest text-xs px-5 py-2.5 rounded-lg transition-colors cursor-pointer flex-shrink-0"
+        >
+          {open ? <X size={14} strokeWidth={2.5} /> : <Plus size={14} strokeWidth={2.5} />}
+          {open ? "Cerrar" : "Nuevo Producto"}
+          <ChevronDown
+            size={14}
+            className={`ml-1 transition-transform duration-200 ${open ? "rotate-180" : ""}`}
+          />
+        </button>
+      </div>
 
       {/* Collapsible panel */}
       <div
         className={`overflow-hidden transition-all duration-300 ease-in-out ${
-          open ? "max-h-[1000px] opacity-100 mt-5" : "max-h-0 opacity-0"
+          open ? "max-h-[1600px] opacity-100 mt-5" : "max-h-0 opacity-0"
         }`}
       >
         <div className="bg-[#1a1a1a] border border-zinc-800 rounded-2xl p-6 md:p-8">
@@ -173,6 +181,9 @@ export default function CreateProductForm({ categories, brands }: Props) {
             {/* Image Upload */}
             <ProductImageUploader key={uploaderKey} onUploadComplete={setImageUrl} />
             <input type="hidden" name="imageUrl" value={imageUrl} />
+
+            {/* Vehículos compatibles */}
+            <VehicleMultiSelect vehicles={vehicles} />
 
             {/* Toggles */}
             <div className="flex flex-wrap gap-6 pt-1">

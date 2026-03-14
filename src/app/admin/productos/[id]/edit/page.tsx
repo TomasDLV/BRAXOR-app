@@ -11,10 +11,11 @@ export default async function EditProductPage({
 }) {
   const { id } = await params;
 
-  const [product, categories, brands] = await Promise.all([
-    prisma.product.findUnique({ where: { id } }),
+  const [product, categories, brands, vehicles] = await Promise.all([
+    prisma.product.findUnique({ where: { id }, include: { vehicles: true } }),
     prisma.category.findMany({ orderBy: { name: "asc" } }),
     prisma.partBrand.findMany({ orderBy: { name: "asc" } }),
+    prisma.vehicle.findMany({ orderBy: [{ make: "asc" }, { model: "asc" }] }),
   ]);
 
   if (!product) notFound();
@@ -55,9 +56,11 @@ export default async function EditProductPage({
             isFeatured: product.isFeatured,
             isNew: product.isNew,
             imageUrl: product.imageUrl ?? "",
+            vehicleIds: product.vehicles.map((v) => v.id),
           }}
           categories={categories}
           brands={brands}
+          vehicles={vehicles}
         />
       </div>
     </main>

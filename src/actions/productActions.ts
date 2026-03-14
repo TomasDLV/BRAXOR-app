@@ -58,6 +58,7 @@ export async function createProduct(
   if (Object.keys(errors).length > 0)
     return { success: false, message: "Corregí los errores del formulario.", errors };
 
+  const vehicleIds = formData.getAll("vehicleId") as string[];
   const parsedPrice = raw.price?.trim() ? Number(raw.price) : null;
 
   try {
@@ -74,6 +75,9 @@ export async function createProduct(
         isNew: raw.isNew,
         imageUrl: raw.imageUrl?.trim() || null,
         showPrice: parsedPrice !== null,
+        ...(vehicleIds.length > 0 && {
+          vehicles: { connect: vehicleIds.map((id) => ({ id })) },
+        }),
       },
     });
 
@@ -124,6 +128,7 @@ export async function updateProduct(
   if (Object.keys(errors).length > 0)
     return { success: false, message: "Corregí los errores del formulario.", errors };
 
+  const vehicleIds = formData.getAll("vehicleId") as string[];
   const parsedPrice = raw.price?.trim() ? Number(raw.price) : null;
 
   try {
@@ -141,6 +146,7 @@ export async function updateProduct(
         isNew: raw.isNew,
         ...(parsedPrice === null ? { showPrice: false } : {}),
         ...(raw.imageUrl?.trim() ? { imageUrl: raw.imageUrl.trim() } : {}),
+        vehicles: { set: vehicleIds.map((id) => ({ id })) },
       },
     });
 

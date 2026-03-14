@@ -6,7 +6,7 @@ import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Search, Zap, Star, ArrowRight, ImageOff, LayoutGrid,
-  SlidersHorizontal, X,
+  SlidersHorizontal, X, Car, ChevronDown,
 } from "lucide-react";
 import { CategoryIcon } from "@/lib/category-icons";
 
@@ -23,6 +23,7 @@ export interface CatalogProduct {
   isFeatured: boolean;
   category: { name: string };
   brand: { name: string };
+  vehicleIds: string[];
 }
 
 export interface CatalogCategory {
@@ -38,6 +39,14 @@ export interface CatalogBrand {
   logoUrl: string | null;
 }
 
+export interface CatalogVehicle {
+  id: string;
+  make: string;
+  model: string;
+  yearStart: number | null;
+  yearEnd: number | null;
+}
+
 const formatARS = (n: number) =>
   new Intl.NumberFormat("es-AR", {
     style: "currency",
@@ -45,22 +54,160 @@ const formatARS = (n: number) =>
     maximumFractionDigits: 0,
   }).format(n);
 
+// ─── Vehicle filter section (shared between sidebar & bottom sheet) ────────────
+
+function VehicleFilter({
+  vehicles,
+  activeVehicle,
+  onSelect,
+  variant = "desktop",
+}: {
+  vehicles: CatalogVehicle[];
+  activeVehicle: string | null;
+  onSelect: (id: string | null) => void;
+  variant?: "desktop" | "mobile";
+}) {
+  const [openMakes, setOpenMakes] = useState<Record<string, boolean>>({});
+  const [vehicleSearch, setVehicleSearch] = useState("");
+
+  const grouped = useMemo(() => {
+    const q = vehicleSearch.toLowerCase();
+    const filtered = q
+      ? vehicles.filter(
+          (v) => v.make.toLowerCase().includes(q) || v.model.toLowerCase().includes(q)
+        )
+      : vehicles;
+    return Object.entries(
+      filtered.reduce<Record<string, CatalogVehicle[]>>((acc, v) => {
+        (acc[v.make] ??= []).push(v);
+        return acc;
+      }, {})
+    ).sort(([a], [b]) => a.localeCompare(b));
+  }, [vehicles, vehicleSearch]);
+
+  const toggleMake = (make: string) =>
+    setOpenMakes((prev) => ({ ...prev, [make]: !prev[make] }));
+
+  if (vehicles.length === 0) return null;
+
+  const isMobile = variant === "mobile";
+
+  return (
+    <div className="flex flex-col gap-2">
+      <p className={`text-zinc-600 text-[10px] font-bold uppercase tracking-widest ${isMobile ? "mb-1" : "mb-1"}`}>
+        Mi Vehículo
+      </p>
+
+      {/* Search dentro del filtro */}
+      {vehicles.length > 6 && (
+        <div className="relative mb-1">
+          <Search size={11} className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-600 pointer-events-none" />
+          <input
+            type="text"
+            value={vehicleSearch}
+            onChange={(e) => setVehicleSearch(e.target.value)}
+            placeholder="Buscar modelo..."
+            className="w-full bg-zinc-900 border border-zinc-800 text-white text-xs pl-7 pr-3 py-2 rounded-lg focus:outline-none focus:border-zinc-600 placeholder-zinc-700 transition-colors"
+          />
+        </div>
+      )}
+
+      {/* Todos los vehículos */}
+      <button
+        onClick={() => onSelect(null)}
+        className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-bold transition-colors cursor-pointer text-left ${
+          isMobile ? "px-4 rounded-xl" : ""
+        } ${
+          activeVehicle === null
+            ? "bg-yellow-500/10 border border-yellow-500/25 text-yellow-400"
+            : isMobile
+            ? "bg-zinc-900 border border-zinc-800 text-zinc-400"
+            : "text-zinc-500 hover:text-white hover:bg-zinc-900"
+        }`}
+      >
+        <div className="w-7 h-7 rounded-full bg-zinc-800 flex items-center justify-center flex-shrink-0">
+          <Car size={12} className="text-zinc-400" />
+        </div>
+        Todos
+      </button>
+
+      {/* Grouped by make */}
+      <div className="flex flex-col gap-0.5">
+        {grouped.map(([make, makeVehicles]) => {
+          const isOpen = openMakes[make] ?? false;
+          const hasMakeActive = makeVehicles.some((v) => v.id === activeVehicle);
+
+          return (
+            <div key={make}>
+              {/* Make toggle */}
+              <button
+                onClick={() => toggleMake(make)}
+                className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-xs font-black uppercase tracking-widest transition-colors cursor-pointer ${
+                  hasMakeActive
+                    ? "text-yellow-400"
+                    : "text-zinc-600 hover:text-zinc-300 hover:bg-zinc-900/50"
+                }`}
+              >
+                <span>{make}</span>
+                <ChevronDown
+                  size={12}
+                  className={`transition-transform duration-200 ${isOpen || hasMakeActive ? "rotate-180" : ""}`}
+                />
+              </button>
+
+              {/* Models */}
+              {(isOpen || hasMakeActive) && (
+                <div className="ml-3 flex flex-col gap-0.5 border-l border-zinc-800 pl-3 mb-1">
+                  {makeVehicles.map((v) => {
+                    const isActive = activeVehicle === v.id;
+                    return (
+                      <button
+                        key={v.id}
+                        onClick={() => onSelect(isActive ? null : v.id)}
+                        className={`flex items-center justify-between px-2 py-2 rounded-lg text-xs font-semibold transition-colors cursor-pointer text-left ${
+                          isActive
+                            ? "bg-yellow-500/10 text-yellow-400"
+                            : "text-zinc-500 hover:text-white hover:bg-zinc-900"
+                        }`}
+                      >
+                        <span>{v.model}</span>
+                        {(v.yearStart || v.yearEnd) && (
+                          <span className="text-zinc-700 font-mono text-[10px] flex-shrink-0 ml-2">
+                            {v.yearStart ?? "?"}–{v.yearEnd ?? "hoy"}
+                          </span>
+                        )}
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
 // ─── Main Component ───────────────────────────────────────────────────────────
 
 export default function CatalogoClient({
   products,
   categories,
   brands,
+  vehicles,
   initialCategory = "Todos",
 }: {
   products: CatalogProduct[];
   categories: CatalogCategory[];
   brands: CatalogBrand[];
+  vehicles: CatalogVehicle[];
   initialCategory?: string;
 }) {
   const [query, setQuery] = useState("");
   const [activeCategory, setActiveCategory] = useState(initialCategory);
   const [activeBrand, setActiveBrand] = useState<string | null>(null);
+  const [activeVehicle, setActiveVehicle] = useState<string | null>(null);
   const [filterNew, setFilterNew] = useState(false);
   const [filterFeatured, setFilterFeatured] = useState(false);
   const [bottomSheetOpen, setBottomSheetOpen] = useState(false);
@@ -70,6 +217,7 @@ export default function CatalogoClient({
     return products.filter((p) => {
       const matchCat = activeCategory === "Todos" || p.category.name === activeCategory;
       const matchBrand = !activeBrand || p.brand.name === activeBrand;
+      const matchVehicle = !activeVehicle || p.vehicleIds.includes(activeVehicle);
       const matchNew = !filterNew || p.isNew;
       const matchFeatured = !filterFeatured || p.isFeatured;
       const matchQuery =
@@ -77,13 +225,14 @@ export default function CatalogoClient({
         p.name.toLowerCase().includes(q) ||
         p.brand.name.toLowerCase().includes(q) ||
         p.sku.toLowerCase().includes(q);
-      return matchCat && matchBrand && matchNew && matchFeatured && matchQuery;
+      return matchCat && matchBrand && matchVehicle && matchNew && matchFeatured && matchQuery;
     });
-  }, [query, activeCategory, activeBrand, filterNew, filterFeatured, products]);
+  }, [query, activeCategory, activeBrand, activeVehicle, filterNew, filterFeatured, products]);
 
   const activeFiltersCount = [
     activeCategory !== "Todos",
     activeBrand !== null,
+    activeVehicle !== null,
     filterNew,
     filterFeatured,
   ].filter(Boolean).length;
@@ -92,6 +241,7 @@ export default function CatalogoClient({
     setQuery("");
     setActiveCategory("Todos");
     setActiveBrand(null);
+    setActiveVehicle(null);
     setFilterNew(false);
     setFilterFeatured(false);
   }
@@ -250,6 +400,19 @@ export default function CatalogoClient({
             ))}
           </div>
 
+          {/* Vehículos */}
+          {vehicles.length > 0 && (
+            <>
+              <div className="h-px bg-zinc-800" />
+              <VehicleFilter
+                vehicles={vehicles}
+                activeVehicle={activeVehicle}
+                onSelect={setActiveVehicle}
+                variant="desktop"
+              />
+            </>
+          )}
+
           <AnimatePresence>
             {activeFiltersCount > 0 && (
               <motion.button
@@ -351,7 +514,7 @@ export default function CatalogoClient({
           <>
             {/* Overlay */}
             <motion.div
-              className="fixed inset-0 bg-black/60 z-50 lg:hidden"
+              className="fixed inset-0 bg-black/60 z-40 lg:hidden"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
@@ -360,25 +523,28 @@ export default function CatalogoClient({
 
             {/* Sheet */}
             <motion.div
-              className="fixed bottom-0 left-0 right-0 z-50 lg:hidden bg-[#111] border-t border-zinc-800 rounded-t-2xl overflow-hidden"
+              className="fixed bottom-0 left-0 right-0 z-50 lg:hidden bg-[#111] border-t border-zinc-800 rounded-t-2xl flex flex-col"
+              style={{ maxHeight: "85vh" }}
               initial={{ y: "100%" }}
               animate={{ y: 0 }}
               exit={{ y: "100%" }}
               transition={{ type: "spring", damping: 30, stiffness: 300 }}
             >
-              {/* Handle */}
-              <div className="flex justify-center pt-3 pb-1">
+              {/* Handle — fijo arriba */}
+              <div className="flex justify-center pt-3 pb-1 flex-shrink-0">
                 <div className="w-10 h-1 rounded-full bg-zinc-700" />
               </div>
 
-              <div className="px-5 pb-8 pt-3 max-h-[75vh] overflow-y-auto">
-                {/* Header */}
-                <div className="flex items-center justify-between mb-5">
-                  <span className="text-white font-black uppercase tracking-widest text-sm">Filtros</span>
-                  <button onClick={() => setBottomSheetOpen(false)} className="text-zinc-500 hover:text-white cursor-pointer">
-                    <X size={18} />
-                  </button>
-                </div>
+              {/* Header — fijo */}
+              <div className="flex items-center justify-between px-5 pt-2 pb-4 flex-shrink-0">
+                <span className="text-white font-black uppercase tracking-widest text-sm">Filtros</span>
+                <button onClick={() => setBottomSheetOpen(false)} className="text-zinc-500 hover:text-white cursor-pointer">
+                  <X size={18} />
+                </button>
+              </div>
+
+              {/* Contenido scrolleable */}
+              <div className="flex-1 overflow-y-auto px-5 pb-4">
 
                 {/* Nuevo / Destacado */}
                 <p className="text-zinc-600 text-[10px] font-bold uppercase tracking-widest mb-3">Estado</p>
@@ -407,9 +573,21 @@ export default function CatalogoClient({
                   </button>
                 </div>
 
+                {/* Vehículos */}
+                {vehicles.length > 0 && (
+                  <div className="mb-6">
+                    <VehicleFilter
+                      vehicles={vehicles}
+                      activeVehicle={activeVehicle}
+                      onSelect={(id) => { setActiveVehicle(id); }}
+                      variant="mobile"
+                    />
+                  </div>
+                )}
+
                 {/* Categorías */}
                 <p className="text-zinc-600 text-[10px] font-bold uppercase tracking-widest mb-3">Categorías</p>
-                <div className="flex flex-col gap-2 mb-6">
+                <div className="flex flex-col gap-2">
                   <button
                     onClick={() => setActiveCategory("Todos")}
                     className={`flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold transition-colors cursor-pointer text-left ${
@@ -450,24 +628,24 @@ export default function CatalogoClient({
                     </button>
                   ))}
                 </div>
+              </div>
 
-                {/* Acciones */}
-                <div className="flex gap-3">
-                  {activeFiltersCount > 0 && (
-                    <button
-                      onClick={clearFilters}
-                      className="flex-1 py-3 rounded-xl border border-zinc-700 text-zinc-400 text-xs font-black uppercase tracking-widest cursor-pointer hover:border-red-500/40 hover:text-red-400 transition-colors"
-                    >
-                      Limpiar
-                    </button>
-                  )}
+              {/* Acciones — fijas abajo, siempre visibles */}
+              <div className="flex gap-3 px-5 py-4 border-t border-zinc-800 flex-shrink-0">
+                {activeFiltersCount > 0 && (
                   <button
-                    onClick={() => setBottomSheetOpen(false)}
-                    className="flex-1 py-3 rounded-xl bg-yellow-500 text-black text-xs font-black uppercase tracking-widest cursor-pointer"
+                    onClick={clearFilters}
+                    className="flex-1 py-3 rounded-xl border border-zinc-700 text-zinc-400 text-xs font-black uppercase tracking-widest cursor-pointer hover:border-red-500/40 hover:text-red-400 transition-colors"
                   >
-                    Ver {filtered.length} resultado{filtered.length !== 1 ? "s" : ""}
+                    Limpiar
                   </button>
-                </div>
+                )}
+                <button
+                  onClick={() => setBottomSheetOpen(false)}
+                  className="flex-1 py-3 rounded-xl bg-yellow-500 text-black text-xs font-black uppercase tracking-widest cursor-pointer"
+                >
+                  Ver {filtered.length} resultado{filtered.length !== 1 ? "s" : ""}
+                </button>
               </div>
             </motion.div>
           </>

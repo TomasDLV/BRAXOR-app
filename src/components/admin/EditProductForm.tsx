@@ -7,6 +7,9 @@ import { updateProduct } from "@/actions/productActions";
 import type { ActionState } from "@/types/actions";
 import { Save, CheckCircle2, AlertCircle } from "lucide-react";
 import ProductImageUploader from "@/components/admin/ProductImageUploader";
+import VehicleMultiSelect from "@/components/admin/VehicleMultiSelect";
+
+type Vehicle = { id: string; make: string; model: string; yearStart: number | null; yearEnd: number | null };
 
 interface ProductData {
   id: string;
@@ -20,12 +23,14 @@ interface ProductData {
   isFeatured: boolean;
   isNew: boolean;
   imageUrl: string;
+  vehicleIds: string[];
 }
 
 interface Props {
   product: ProductData;
   categories: { id: string; name: string }[];
   brands: { id: string; name: string }[];
+  vehicles: Vehicle[];
 }
 
 function SubmitButton() {
@@ -46,7 +51,7 @@ function SubmitButton() {
   );
 }
 
-export default function EditProductForm({ product, categories, brands }: Props) {
+export default function EditProductForm({ product, categories, brands, vehicles }: Props) {
   const router = useRouter();
   const [state, formAction] = useActionState<ActionState, FormData>(updateProduct, null);
   const formRef = useRef<HTMLFormElement>(null);
@@ -159,6 +164,9 @@ export default function EditProductForm({ product, categories, brands }: Props) 
           existingUrl={imageUrl}
         />
         <input type="hidden" name="imageUrl" value={imageUrl} />
+
+        {/* Vehículos compatibles */}
+        <VehicleMultiSelect vehicles={vehicles} defaultSelected={product.vehicleIds} />
 
         {/* Toggles */}
         <div className="flex flex-wrap gap-6 pt-1">

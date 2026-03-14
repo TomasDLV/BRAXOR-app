@@ -1,19 +1,41 @@
 import { prisma } from "@/lib/prisma";
 import CategoryForm from "@/components/admin/CategoryForm";
 import DeleteCategoryButton from "@/components/admin/DeleteCategoryButton";
+import ToggleCategoryButton from "@/components/admin/ToggleCategoryButton";
+import AdminSearchInput from "@/components/admin/AdminSearchInput";
+import AdminPagination from "@/components/admin/AdminPagination";
 import { Tag, Layers, Pencil, ImageOff } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import ToggleCategoryButton from "@/components/admin/ToggleCategoryButton";
 import { CategoryIcon } from "@/lib/category-icons";
 
 export const dynamic = "force-dynamic";
 
-export default async function AdminCategoriasPage() {
-  const categories = await prisma.category.findMany({
-    orderBy: { name: "asc" },
-    include: { _count: { select: { products: true } } },
-  });
+const PAGE_SIZE = 10;
+
+export default async function AdminCategoriasPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ q?: string; page?: string }>;
+}) {
+  const { q = "", page = "1" } = await searchParams;
+  const currentPage = Math.max(1, parseInt(page, 10) || 1);
+  const skip = (currentPage - 1) * PAGE_SIZE;
+
+  const where = q
+    ? { name: { contains: q, mode: "insensitive" as const } }
+    : {};
+
+  const [categories, total] = await Promise.all([
+    prisma.category.findMany({
+      where,
+      orderBy: { name: "asc" },
+      include: { _count: { select: { products: true } } },
+      skip,
+      take: PAGE_SIZE,
+    }),
+    prisma.category.count({ where }),
+  ]);
 
   return (
     <main className="flex-1 p-6 md:p-10 overflow-auto">
@@ -26,14 +48,15 @@ export default async function AdminCategoriasPage() {
           Categorías
         </h1>
         <p className="text-zinc-500 text-sm mt-1">
-          {categories.length} categoría{categories.length !== 1 ? "s" : ""} activa
-          {categories.length !== 1 ? "s" : ""}.
+          {total} categoría{total !== 1 ? "s" : ""} activa{total !== 1 ? "s" : ""}.
         </p>
       </div>
 
-      {/* Create form */}
+      {/* Create form + Search */}
       <div className="mb-8">
-        <CategoryForm />
+        <CategoryForm>
+          <AdminSearchInput placeholder="Buscar categorías..." />
+        </CategoryForm>
       </div>
 
       {/* Table */}
@@ -42,14 +65,14 @@ export default async function AdminCategoriasPage() {
           <h2 className="text-white font-black uppercase tracking-wide text-sm">
             Categorías registradas
           </h2>
-          <span className="text-zinc-600 text-xs font-mono">{categories.length} registros</span>
+          <span className="text-zinc-600 text-xs font-mono">{total} registros</span>
         </div>
 
         {categories.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-24 gap-3 text-center">
             <Tag size={36} className="text-zinc-800" />
             <p className="text-zinc-600 text-sm font-semibold uppercase tracking-widest">
-              No hay categorías todavía.
+              {q ? `Sin resultados para "${q}".` : "No hay categorías todavía."}
             </p>
           </div>
         ) : (
@@ -138,7 +161,11 @@ export default async function AdminCategoriasPage() {
                           Editar
                         </Link>
                         <span className="text-zinc-800">|</span>
-                        <DeleteCategoryButton id={cat.id} name={cat.name} disabled={cat._count.products > 0} />
+                        <DeleteCategoryButton
+                          id={cat.id}
+                          name={cat.name}
+                          disabled={cat._count.products > 0}
+                        />
                       </div>
                     </td>
                   </tr>
@@ -147,6 +174,8 @@ export default async function AdminCategoriasPage() {
             </table>
           </div>
         )}
+
+        <AdminPagination total={total} perPage={PAGE_SIZE} />
       </div>
     </main>
   );
