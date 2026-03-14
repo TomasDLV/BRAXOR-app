@@ -127,6 +127,7 @@ export default async function AdminMarcasPage() {
                         <span className="text-zinc-800">|</span>
                         <DeleteBrandButton
                           id={brand.id}
+                          name={brand.name}
                           disabled={brand._count.products > 0}
                         />
                       </div>

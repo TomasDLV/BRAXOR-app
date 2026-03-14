@@ -163,7 +163,7 @@ export default async function AdminProductosPage() {
                           Editar
                         </Link>
                         <span className="text-zinc-800">|</span>
-                        <DeleteProductButton id={p.id} />
+                        <DeleteProductButton id={p.id} name={p.name} />
                       </div>
                     </td>
                   </tr>

@@ -2,7 +2,8 @@
 
 import { useActionState, useEffect, useRef, useState } from "react";
 import { useFormStatus } from "react-dom";
-import { createCategory, type ActionState } from "@/actions/categoryActions";
+import { createCategory } from "@/actions/categoryActions";
+import type { ActionState } from "@/types/actions";
 import { Plus, X, CheckCircle2, AlertCircle, ChevronDown, Tag } from "lucide-react";
 
 function SubmitButton() {

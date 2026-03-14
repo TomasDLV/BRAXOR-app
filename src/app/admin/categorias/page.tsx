@@ -105,7 +105,7 @@ export default async function AdminCategoriasPage() {
                           Editar
                         </Link>
                         <span className="text-zinc-800">|</span>
-                        <DeleteCategoryButton id={cat.id} disabled={cat._count.products > 0} />
+                        <DeleteCategoryButton id={cat.id} name={cat.name} disabled={cat._count.products > 0} />
                       </div>
                     </td>
                   </tr>

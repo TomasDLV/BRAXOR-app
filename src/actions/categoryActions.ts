@@ -2,8 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
-import type { ActionState } from "@/actions/productActions";
-export type { ActionState };
+import type { ActionState } from "@/types/actions";
 
 export async function createCategory(
   _prevState: ActionState,

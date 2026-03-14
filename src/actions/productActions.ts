@@ -3,11 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
 
-export type ActionState = {
-  success: boolean;
-  message: string;
-  errors?: Record<string, string>;
-} | null;
+import type { ActionState } from "@/types/actions";
 
 // ─── CREATE ───────────────────────────────────────────────────────────────────
 

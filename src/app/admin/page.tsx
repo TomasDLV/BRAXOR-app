@@ -172,7 +172,7 @@ export default async function AdminPage() {
 
                     {/* Actions */}
                     <td className="pr-6 pl-4 py-4 text-right">
-                      <DeleteProductButton id={p.id} />
+                      <DeleteProductButton id={p.id} name={p.name} />
                     </td>
                   </tr>
                 ))}

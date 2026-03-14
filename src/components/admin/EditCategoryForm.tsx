@@ -3,7 +3,8 @@
 import { useActionState, useEffect } from "react";
 import { useFormStatus } from "react-dom";
 import { useRouter } from "next/navigation";
-import { updateCategory, type ActionState } from "@/actions/categoryActions";
+import { updateCategory } from "@/actions/categoryActions";
+import type { ActionState } from "@/types/actions";
 import { Save, CheckCircle2, AlertCircle, Tag } from "lucide-react";
 
 function SubmitButton() {
