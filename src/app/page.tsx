@@ -9,10 +9,10 @@ import { ArrowRight, MapPin, Zap } from "lucide-react";
 // ─── Data ─────────────────────────────────────────────────────────────────────
 
 const CATEGORIES = [
-  { title: "Llantas &\nNeumáticos", href: "/catalogo?categoria=llantas", img: "/images/cat-llantas.png", sub: "BFGoodrich · General · Method" },
-  { title: "Kits de\nSuspensión", href: "/catalogo?categoria=suspension", img: "/images/cat-suspension.png", sub: "ARB · Old Man Emu · Warn" },
-  { title: "Defensas &\nEstribos", href: "/catalogo?categoria=defensas", img: "/images/cat-defensas.png", sub: "Rhino · ARB · Baratec" },
-  { title: "Iluminación\nLED", href: "/catalogo?categoria=iluminacion", img: "/images/cat-iluminacion.png", sub: "Baratec · Warn · Trail Series" },
+  { title: "Defensas \ndelanteras", href: "/catalogo?categoria=defensas", img: "/images/cat-defensadel.png", sub: "BFGoodrich · General · Method" },
+  { title: "Estribos", href: "/catalogo?categoria=suspension", img: "/images/cat-estribo.png", sub: "ARB · Old Man Emu · Warn" },
+  { title: "Tapas &\nPlegables", href: "/catalogo?categoria=defensas", img: "/images/cat-plegable.png", sub: "Rhino · ARB · Baratec" },
+  { title: "Lonas\nRollers", href: "/catalogo?categoria=iluminacion", img: "/images/cat-roller.png", sub: "Baratec · Warn · Trail Series" },
 ];
 
 const BRANDS = ["BFGoodrich", "Warn", "ARB", "Baratec", "Method", "Rhino"];
