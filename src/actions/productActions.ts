@@ -3,11 +3,27 @@
 import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
 
-export type ActionState = {
-  success: boolean;
-  message: string;
-  errors?: Record<string, string>;
-} | null;
+import type { ActionState } from "@/types/actions";
+
+// ─── TOGGLES ──────────────────────────────────────────────────────────────────
+
+export async function toggleProductActive(formData: FormData): Promise<void> {
+  const id = formData.get("id") as string;
+  const current = formData.get("isActive") === "true";
+  if (!id) return;
+  await prisma.product.update({ where: { id }, data: { isActive: !current } });
+  revalidatePath("/admin/productos");
+  revalidatePath("/catalogo");
+}
+
+export async function toggleProductPrice(formData: FormData): Promise<void> {
+  const id = formData.get("id") as string;
+  const current = formData.get("showPrice") === "true";
+  if (!id) return;
+  await prisma.product.update({ where: { id }, data: { showPrice: !current } });
+  revalidatePath("/admin/productos");
+  revalidatePath("/catalogo");
+}
 
 // ─── CREATE ───────────────────────────────────────────────────────────────────
 

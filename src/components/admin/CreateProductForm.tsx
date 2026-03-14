@@ -2,7 +2,8 @@
 
 import { useActionState, useEffect, useRef, useState } from "react";
 import { useFormStatus } from "react-dom";
-import { createProduct, type ActionState } from "@/actions/productActions";
+import { createProduct } from "@/actions/productActions";
+import type { ActionState } from "@/types/actions";
 import { Plus, X, CheckCircle2, AlertCircle, ChevronDown } from "lucide-react";
 import ProductImageUploader from "@/components/admin/ProductImageUploader";
 

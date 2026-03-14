@@ -42,6 +42,7 @@ export default function Footer() {
                 src="/images/logo-footer.png"
                 alt="Bräxor Off-Road"
                 fill
+                sizes="192px"
                 className="object-contain object-left"
               />
             </div>

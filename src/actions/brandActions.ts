@@ -2,8 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
-import type { ActionState } from "@/actions/productActions";
-export type { ActionState };
+import type { ActionState } from "@/types/actions";
 
 export async function createBrand(
   _prevState: ActionState,
@@ -51,6 +50,13 @@ export async function updateBrand(
     console.error("[updateBrand]", err);
     return { success: false, message: "Error inesperado." };
   }
+}
+
+export async function toggleBrandVisibility(id: string, current: boolean): Promise<void> {
+  await prisma.partBrand.update({ where: { id }, data: { showInHome: !current } });
+  revalidatePath("/admin/marcas");
+  revalidatePath("/");
+  revalidatePath("/catalogo");
 }
 
 export async function deleteBrand(

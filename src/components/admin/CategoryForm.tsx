@@ -2,8 +2,10 @@
 
 import { useActionState, useEffect, useRef, useState } from "react";
 import { useFormStatus } from "react-dom";
-import { createCategory, type ActionState } from "@/actions/categoryActions";
+import { createCategory } from "@/actions/categoryActions";
+import type { ActionState } from "@/types/actions";
 import { Plus, X, CheckCircle2, AlertCircle, ChevronDown, Tag } from "lucide-react";
+import ProductImageUploader from "@/components/admin/ProductImageUploader";
 
 function SubmitButton() {
   const { pending } = useFormStatus();
@@ -27,10 +29,12 @@ export default function CategoryForm() {
   const [open, setOpen] = useState(false);
   const [state, formAction] = useActionState<ActionState, FormData>(createCategory, null);
   const formRef = useRef<HTMLFormElement>(null);
+  const [imageUrl, setImageUrl] = useState("");
 
   useEffect(() => {
     if (state?.success) {
       formRef.current?.reset();
+      setImageUrl("");
       const t = setTimeout(() => setOpen(false), 1500);
       return () => clearTimeout(t);
     }
@@ -52,7 +56,7 @@ export default function CategoryForm() {
 
       <div
         className={`overflow-hidden transition-all duration-300 ease-in-out ${
-          open ? "max-h-72 opacity-100 mt-5" : "max-h-0 opacity-0"
+          open ? "max-h-[600px] opacity-100 mt-5" : "max-h-0 opacity-0"
         }`}
       >
         <div className="bg-[#1a1a1a] border border-zinc-800 rounded-2xl p-6 md:p-8">
@@ -78,8 +82,9 @@ export default function CategoryForm() {
             </div>
           )}
 
-          <form ref={formRef} action={formAction} className="flex flex-col sm:flex-row gap-4">
-            <div className="flex-1 flex flex-col gap-1.5">
+          <form ref={formRef} action={formAction} className="space-y-5">
+            {/* Nombre */}
+            <div className="flex flex-col gap-1.5">
               <label className="text-zinc-400 text-xs uppercase tracking-widest font-bold">
                 Nombre <span className="text-yellow-500">*</span>
               </label>
@@ -91,8 +96,20 @@ export default function CategoryForm() {
                 className="bg-[#111] border border-zinc-700 text-white text-sm px-4 py-3 rounded-lg focus:outline-none focus:border-yellow-500/70 placeholder-zinc-700 transition-colors"
               />
             </div>
-            <div className="flex items-end">
+
+            {/* Imagen */}
+            <ProductImageUploader onUploadComplete={setImageUrl} />
+            <input type="hidden" name="imageUrl" value={imageUrl} />
+
+            <div className="flex items-center gap-4 pt-2 border-t border-zinc-800">
               <SubmitButton />
+              <button
+                type="button"
+                onClick={() => formRef.current?.reset()}
+                className="text-zinc-600 hover:text-zinc-300 text-xs uppercase tracking-widest font-bold transition-colors cursor-pointer"
+              >
+                Limpiar
+              </button>
             </div>
           </form>
         </div>

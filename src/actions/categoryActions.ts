@@ -2,8 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
-import type { ActionState } from "@/actions/productActions";
-export type { ActionState };
+import type { ActionState } from "@/types/actions";
 
 export async function createCategory(
   _prevState: ActionState,
@@ -51,6 +50,13 @@ export async function updateCategory(
     console.error("[updateCategory]", err);
     return { success: false, message: "Error inesperado." };
   }
+}
+
+export async function toggleCategoryVisibility(id: string, current: boolean): Promise<void> {
+  await prisma.category.update({ where: { id }, data: { showInHome: !current } });
+  revalidatePath("/admin/categorias");
+  revalidatePath("/");
+  revalidatePath("/catalogo");
 }
 
 export async function deleteCategory(

@@ -19,3 +19,8 @@
 * Las interacciones con la base de datos se hacen exclusivamente mediante **Server Actions** (nada de API Routes a menos que sea para webhooks de terceros).
 * Nunca asumas código antiguo (Pages router o Tailwind v3).
 * Escribe código limpio, modular y listo para producción. Si hay un error, maneja las excepciones sin romper la UI (ej. usando Toasts o mensajes de error elegantes).
+## 4. Evolución UI/UX: Inmersión y Scrolltelling (Fase 2)
+* **Smooth Scrolling:** Obligatorio el uso de `@studio-freight/react-lenis` en el Layout principal (`src/app/layout.tsx`) para garantizar que los efectos de parallax y scrolltelling sean fluidos y de calidad Apple/Tesla.
+* **Scrolltelling Avanzado:** Para secciones narrativas (ej. el Home), priorizar layouts `sticky` (`h-[300vh]` con contenedores `sticky top-0`), usando `useScroll` y `useTransform` de `framer-motion` para atar opacidades, escalas y traslaciones directamente al progreso del scroll del usuario.
+* **Preparación 3D (React Three Fiber):** El entorno ya cuenta con `@react-three/fiber` y `@react-three/drei`. En futuras iteraciones se integrarán modelos `.gltf` / `.glb` (ej. visualizador de camionetas o repuestos). Diseñar los contenedores previendo espacios `canvas` para 3D.
+* **Performance:** Los componentes de scrolltelling pesado o 3D deben aislarse en Client Components (`"use client"`) y cargarse dinámicamente (`next/dynamic`) si es necesario para no penalizar el First Load.

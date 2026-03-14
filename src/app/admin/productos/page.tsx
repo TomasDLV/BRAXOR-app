@@ -4,6 +4,7 @@ import DeleteProductButton from "@/components/admin/DeleteProductButton";
 import { Package, ImageOff, Pencil } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
+import { ToggleActiveButton, TogglePriceButton } from "@/components/admin/ToggleProductButton";
 
 export const dynamic = "force-dynamic";
 
@@ -66,7 +67,7 @@ export default async function AdminProductosPage() {
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-zinc-800/80">
-                  {["", "SKU", "Nombre", "Categoría", "Marca", "Precio", "Stock", "Estado", "Acciones"].map(
+                  {["", "SKU", "Nombre", "Categoría", "Marca", "Precio", "Stock", "Badges", "Activo", "Precio vis.", "Acciones"].map(
                     (h, i) => (
                       <th
                         key={i}
@@ -152,6 +153,16 @@ export default async function AdminProductosPage() {
                       </div>
                     </td>
 
+                    {/* Toggle activo */}
+                    <td className="px-4 py-3 whitespace-nowrap">
+                      <ToggleActiveButton id={p.id} isActive={p.isActive} />
+                    </td>
+
+                    {/* Toggle precio */}
+                    <td className="px-4 py-3 whitespace-nowrap">
+                      <TogglePriceButton id={p.id} showPrice={p.showPrice} />
+                    </td>
+
                     {/* Actions */}
                     <td className="pr-6 pl-4 py-3">
                       <div className="flex items-center justify-end gap-3">
@@ -163,7 +174,7 @@ export default async function AdminProductosPage() {
                           Editar
                         </Link>
                         <span className="text-zinc-800">|</span>
-                        <DeleteProductButton id={p.id} />
+                        <DeleteProductButton id={p.id} name={p.name} />
                       </div>
                     </td>
                   </tr>
