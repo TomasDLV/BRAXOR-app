@@ -4,6 +4,7 @@ import DeleteCategoryButton from "@/components/admin/DeleteCategoryButton";
 import { Tag, Layers, Pencil, ImageOff } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
+import ToggleCategoryButton from "@/components/admin/ToggleCategoryButton";
 
 export const dynamic = "force-dynamic";
 
@@ -55,7 +56,7 @@ export default async function AdminCategoriasPage() {
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-zinc-800/80">
-                  {["Imagen", "Nombre", "Productos", "Acciones"].map((h, i) => (
+                  {["Imagen", "Nombre", "Productos", "Visibilidad", "Acciones"].map((h, i) => (
                     <th
                       key={i}
                       className="text-left text-zinc-600 text-[10px] font-bold uppercase tracking-widest px-6 py-3 whitespace-nowrap first:pl-6 last:pr-6 last:text-right"
@@ -112,6 +113,11 @@ export default async function AdminCategoriasPage() {
                           {cat._count.products === 1 ? "producto" : "productos"}
                         </span>
                       </div>
+                    </td>
+
+                    {/* Visibilidad */}
+                    <td className="px-6 py-4">
+                      <ToggleCategoryButton id={cat.id} showInHome={cat.showInHome} />
                     </td>
 
                     {/* Actions */}

@@ -13,6 +13,7 @@ export interface CatalogProduct {
   name: string;
   sku: string;
   price: number;
+  showPrice: boolean;
   imageUrl: string | null;
   isNew: boolean;
   isFeatured: boolean;
@@ -292,9 +293,15 @@ function ProductCard({ product, index }: { product: CatalogProduct; index: numbe
             <div className="flex items-end justify-between mt-1">
               <div>
                 <p className="text-[10px] text-zinc-600 uppercase tracking-widest font-medium">Precio</p>
-                <p className="text-yellow-500 font-black text-lg md:text-xl leading-none">
-                  {formatARS(product.price)}
-                </p>
+                {product.showPrice ? (
+                  <p className="text-yellow-500 font-black text-lg md:text-xl leading-none">
+                    {formatARS(product.price)}
+                  </p>
+                ) : (
+                  <p className="text-zinc-500 font-black text-sm uppercase tracking-widest leading-none">
+                    Consultar
+                  </p>
+                )}
               </div>
               <p className="text-zinc-700 text-[9px] uppercase tracking-widest font-mono">
                 {product.sku}

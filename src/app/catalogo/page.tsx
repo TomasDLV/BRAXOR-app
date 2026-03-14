@@ -12,10 +12,11 @@ export default async function CatalogoPage({
 
   const [products, categories] = await Promise.all([
     prisma.product.findMany({
+      where: { isActive: true, category: { showInHome: true } },
       include: { category: true, brand: true },
       orderBy: { createdAt: "desc" },
     }),
-    prisma.category.findMany({ orderBy: { name: "asc" } }),
+    prisma.category.findMany({ where: { showInHome: true }, orderBy: { name: "asc" } }),
   ]);
 
   // Resuelve el param de URL contra las categorías reales (case-insensitive)
@@ -28,6 +29,7 @@ export default async function CatalogoPage({
     name: p.name,
     sku: p.sku,
     price: Number(p.price),
+    showPrice: p.showPrice,
     imageUrl: p.imageUrl,
     isNew: p.isNew,
     isFeatured: p.isFeatured,

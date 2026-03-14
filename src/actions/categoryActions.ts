@@ -48,6 +48,17 @@ export async function updateCategory(
   }
 }
 
+export async function toggleCategoryVisibility(formData: FormData): Promise<void> {
+  const id = formData.get("id") as string;
+  const current = formData.get("showInHome") === "true";
+  if (!id) return;
+
+  await prisma.category.update({ where: { id }, data: { showInHome: !current } });
+  revalidatePath("/admin/categorias");
+  revalidatePath("/");
+  revalidatePath("/catalogo");
+}
+
 export async function deleteCategory(
   _prevState: ActionState,
   formData: FormData
