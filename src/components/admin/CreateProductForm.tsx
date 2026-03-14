@@ -123,7 +123,7 @@ export default function CreateProductForm({ categories, brands }: Props) {
                 name="price"
                 type="number"
                 placeholder="Ej: 185000"
-                required
+                hint="opcional"
                 error={state?.errors?.price}
               />
               <Field

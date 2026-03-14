@@ -20,6 +20,8 @@ export async function toggleProductPrice(formData: FormData): Promise<void> {
   const id = formData.get("id") as string;
   const current = formData.get("showPrice") === "true";
   if (!id) return;
+  const product = await prisma.product.findUnique({ where: { id }, select: { price: true } });
+  if (!product?.price) return; // no price → can't enable showPrice
   await prisma.product.update({ where: { id }, data: { showPrice: !current } });
   revalidatePath("/admin/productos");
   revalidatePath("/catalogo");
@@ -48,7 +50,7 @@ export async function createProduct(
   const errors: Record<string, string> = {};
   if (!raw.name?.trim()) errors.name = "El nombre es obligatorio.";
   if (!raw.sku?.trim()) errors.sku = "El SKU es obligatorio.";
-  if (!raw.price || isNaN(Number(raw.price)) || Number(raw.price) <= 0)
+  if (raw.price && (isNaN(Number(raw.price)) || Number(raw.price) <= 0))
     errors.price = "Ingresá un precio válido.";
   if (!raw.categoryId) errors.categoryId = "Seleccioná una categoría.";
   if (!raw.brandId) errors.brandId = "Seleccioná una marca.";
@@ -56,19 +58,22 @@ export async function createProduct(
   if (Object.keys(errors).length > 0)
     return { success: false, message: "Corregí los errores del formulario.", errors };
 
+  const parsedPrice = raw.price?.trim() ? Number(raw.price) : null;
+
   try {
     await prisma.product.create({
       data: {
         name: raw.name.trim(),
         sku: raw.sku.trim().toUpperCase(),
         description: raw.description?.trim() || null,
-        price: Number(raw.price),
+        price: parsedPrice,
         stock: Number(raw.stock) || 0,
         categoryId: raw.categoryId,
         brandId: raw.brandId,
         isFeatured: raw.isFeatured,
         isNew: raw.isNew,
         imageUrl: raw.imageUrl?.trim() || null,
+        showPrice: parsedPrice !== null,
       },
     });
 
@@ -111,13 +116,15 @@ export async function updateProduct(
   const errors: Record<string, string> = {};
   if (!raw.name?.trim()) errors.name = "El nombre es obligatorio.";
   if (!raw.sku?.trim()) errors.sku = "El SKU es obligatorio.";
-  if (!raw.price || isNaN(Number(raw.price)) || Number(raw.price) <= 0)
+  if (raw.price && (isNaN(Number(raw.price)) || Number(raw.price) <= 0))
     errors.price = "Ingresá un precio válido.";
   if (!raw.categoryId) errors.categoryId = "Seleccioná una categoría.";
   if (!raw.brandId) errors.brandId = "Seleccioná una marca.";
 
   if (Object.keys(errors).length > 0)
     return { success: false, message: "Corregí los errores del formulario.", errors };
+
+  const parsedPrice = raw.price?.trim() ? Number(raw.price) : null;
 
   try {
     await prisma.product.update({
@@ -126,12 +133,13 @@ export async function updateProduct(
         name: raw.name.trim(),
         sku: raw.sku.trim().toUpperCase(),
         description: raw.description?.trim() || null,
-        price: Number(raw.price),
+        price: parsedPrice,
         stock: Number(raw.stock) || 0,
         categoryId: raw.categoryId,
         brandId: raw.brandId,
         isFeatured: raw.isFeatured,
         isNew: raw.isNew,
+        ...(parsedPrice === null ? { showPrice: false } : {}),
         ...(raw.imageUrl?.trim() ? { imageUrl: raw.imageUrl.trim() } : {}),
       },
     });

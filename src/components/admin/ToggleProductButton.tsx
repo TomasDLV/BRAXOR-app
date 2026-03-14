@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { useFormStatus } from "react-dom";
 import { toggleProductActive, toggleProductPrice } from "@/actions/productActions";
 import { Eye, EyeOff, DollarSign } from "lucide-react";
@@ -60,7 +61,7 @@ function ToggleButton({ value, variant }: { value: boolean; variant: Variant }) 
         <Icon
           size={13}
           strokeWidth={2}
-          className={!value && variant === "price" ? "opacity-40 line-through" : ""}
+          className={!value && variant === "price" ? "opacity-40" : ""}
         />
       )}
       {value ? cfg.activeLabel : cfg.inactiveLabel}
@@ -78,7 +79,40 @@ export function ToggleActiveButton({ id, isActive }: { id: string; isActive: boo
   );
 }
 
-export function TogglePriceButton({ id, showPrice }: { id: string; showPrice: boolean }) {
+export function TogglePriceButton({
+  id,
+  showPrice,
+  hasPrice,
+}: {
+  id: string;
+  showPrice: boolean;
+  hasPrice: boolean;
+}) {
+  const [showMsg, setShowMsg] = useState(false);
+
+  if (!hasPrice) {
+    return (
+      <div className="relative">
+        <button
+          type="button"
+          onClick={() => {
+            setShowMsg(true);
+            setTimeout(() => setShowMsg(false), 3500);
+          }}
+          className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-widest text-zinc-700 cursor-not-allowed select-none"
+        >
+          <DollarSign size={13} strokeWidth={2} className="opacity-30" />
+          Sin precio
+        </button>
+        {showMsg && (
+          <div className="absolute left-0 top-full mt-1.5 z-20 bg-zinc-900 border border-zinc-700 text-zinc-300 text-[11px] font-medium px-3 py-2 rounded-lg shadow-xl whitespace-nowrap">
+            Precio no disponible. Editá el producto y agregá uno.
+          </div>
+        )}
+      </div>
+    );
+  }
+
   return (
     <form action={toggleProductPrice}>
       <input type="hidden" name="id" value={id} />

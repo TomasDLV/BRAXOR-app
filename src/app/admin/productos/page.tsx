@@ -160,7 +160,7 @@ export default async function AdminProductosPage() {
 
                     {/* Toggle precio */}
                     <td className="px-4 py-3 whitespace-nowrap">
-                      <TogglePriceButton id={p.id} showPrice={p.showPrice} />
+                      <TogglePriceButton id={p.id} showPrice={p.showPrice} hasPrice={p.price !== null} />
                     </td>
 
                     {/* Actions */}
