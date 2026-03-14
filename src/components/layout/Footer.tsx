@@ -1,6 +1,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { MapPin, Clock, Mail, Phone, Instagram, Facebook, Youtube } from "lucide-react";
+import { prisma } from "@/lib/prisma";
 
 const NAV_LINKS = [
   { label: "Inicio", href: "/" },
@@ -9,14 +10,12 @@ const NAV_LINKS = [
   { label: "Contacto", href: "/contacto" },
 ];
 
-const CATEGORIES = [
-  { label: "Llantas & Neumáticos", href: "/catalogo?categoria=llantas" },
-  { label: "Kits de Suspensión", href: "/catalogo?categoria=suspension" },
-  { label: "Defensas & Estribos", href: "/catalogo?categoria=defensas" },
-  { label: "Iluminación LED", href: "/catalogo?categoria=iluminacion" },
-];
-
-export default function Footer() {
+export default async function Footer() {
+  const categories = await prisma.category.findMany({
+    where: { showInHome: true },
+    orderBy: { name: "asc" },
+    select: { id: true, name: true },
+  });
   return (
     <footer className="relative w-full bg-[#050505] overflow-hidden">
       {/* Yellow brand line — top accent */}
@@ -83,20 +82,22 @@ export default function Footer() {
                   </Link>
                 </li>
               ))}
-              <li className="pt-1 border-t border-zinc-900 mt-1">
-                <p className="text-zinc-700 text-[9px] uppercase tracking-[0.2em] font-black mb-2.5">
-                  Categorías
-                </p>
-                {CATEGORIES.map((c) => (
-                  <Link
-                    key={c.href}
-                    href={c.href}
-                    className="block text-zinc-600 hover:text-zinc-300 text-xs font-medium transition-colors mb-1.5"
-                  >
-                    {c.label}
-                  </Link>
-                ))}
-              </li>
+              {categories.length > 0 && (
+                <li className="pt-1 border-t border-zinc-900 mt-1">
+                  <p className="text-zinc-700 text-[9px] uppercase tracking-[0.2em] font-black mb-2.5">
+                    Categorías
+                  </p>
+                  {categories.map((c) => (
+                    <Link
+                      key={c.id}
+                      href={`/catalogo?categoria=${encodeURIComponent(c.name.toLowerCase())}`}
+                      className="block text-zinc-600 hover:text-zinc-300 text-xs font-medium transition-colors mb-1.5"
+                    >
+                      {c.name}
+                    </Link>
+                  ))}
+                </li>
+              )}
             </ul>
           </div>
 

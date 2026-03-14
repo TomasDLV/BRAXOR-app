@@ -85,15 +85,3 @@ export async function deleteCategory(
   }
 }
 
-export async function toggleCategoryVisibility(
-  id: string,
-  current: boolean
-): Promise<void> {
-  await prisma.category.update({
-    where: { id },
-    data: { showInHome: !current },
-  });
-  revalidatePath("/admin/categorias");
-  revalidatePath("/");
-  revalidatePath("/catalogo");
-}

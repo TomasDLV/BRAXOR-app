@@ -85,15 +85,3 @@ export async function deleteBrand(
   }
 }
 
-export async function toggleBrandVisibility(
-  id: string,
-  current: boolean
-): Promise<void> {
-  await prisma.partBrand.update({
-    where: { id },
-    data: { showInHome: !current },
-  });
-  revalidatePath("/admin/marcas");
-  revalidatePath("/");
-  revalidatePath("/catalogo");
-}
