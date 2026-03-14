@@ -7,11 +7,14 @@ import { useUploadThing } from "@/lib/uploadthing-client";
 
 interface Props {
   onUploadComplete: (url: string) => void;
+  existingUrl?: string;
 }
 
-export default function ProductImageUploader({ onUploadComplete }: Props) {
-  const [state, setState] = useState<"idle" | "uploading" | "uploaded" | "error">("idle");
-  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+export default function ProductImageUploader({ onUploadComplete, existingUrl }: Props) {
+  const [state, setState] = useState<"idle" | "uploading" | "uploaded" | "error">(
+    existingUrl ? "uploaded" : "idle"
+  );
+  const [previewUrl, setPreviewUrl] = useState<string | null>(existingUrl ?? null);
   const [errorMsg, setErrorMsg] = useState<string>("");
   const inputRef = useRef<HTMLInputElement>(null);
 

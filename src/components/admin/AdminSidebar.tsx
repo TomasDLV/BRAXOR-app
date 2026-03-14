@@ -2,13 +2,14 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LayoutDashboard, Package, Tag, ArrowLeft, Zap } from "lucide-react";
+import { LayoutDashboard, Package, Tag, Shield, ArrowLeft, Zap } from "lucide-react";
 import SignOutButton from "@/components/admin/SignOutButton";
 
 const NAV = [
   { label: "Dashboard", href: "/admin", icon: LayoutDashboard, exact: true },
   { label: "Productos", href: "/admin/productos", icon: Package },
   { label: "Categorías", href: "/admin/categorias", icon: Tag },
+  { label: "Marcas", href: "/admin/marcas", icon: Shield },
 ];
 
 export default function AdminSidebar() {

@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
-import { Search, ShoppingCart, Menu, X } from "lucide-react";
+import { Search, Menu, X } from "lucide-react";
 
 const NAV_LINKS = [
   { label: "Inicio", href: "/" },
@@ -60,9 +60,6 @@ export default function Navbar() {
         <div className="hidden md:flex items-center gap-3 text-zinc-400 z-50">
           <IconButton aria-label="Buscar">
             <Search size={20} strokeWidth={2} />
-          </IconButton>
-          <IconButton aria-label="Carrito">
-            <ShoppingCart size={20} strokeWidth={2} />
           </IconButton>
         </div>
 
@@ -146,9 +143,6 @@ export default function Navbar() {
               <div className="flex gap-8 pt-4 text-zinc-400 border-t border-zinc-800 w-2/3 justify-center mt-2">
                 <button aria-label="Buscar" className="hover:text-yellow-500 transition-colors">
                   <Search size={22} strokeWidth={2} />
-                </button>
-                <button aria-label="Carrito" className="hover:text-yellow-500 transition-colors">
-                  <ShoppingCart size={22} strokeWidth={2} />
                 </button>
               </div>
             </motion.nav>

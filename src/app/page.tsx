@@ -35,22 +35,22 @@ const wordVariant = {
 const CATEGORIES = [
   {
     title: ["Llantas &", "Neumáticos"],
-    href: "/catalogo/llantas",
+    href: "/catalogo?categoria=llantas",
     img: "/images/cat-llantas.png",
   },
   {
     title: ["Kits de", "Suspensión"],
-    href: "/catalogo/suspension",
+    href: "/catalogo?categoria=suspension",
     img: "/images/cat-suspension.png",
   },
   {
     title: ["Defensas &", "Estribos"],
-    href: "/catalogo/defensas",
+    href: "/catalogo?categoria=defensas",
     img: "/images/cat-defensas.png",
   },
   {
     title: ["Iluminación", "LED"],
-    href: "/catalogo/iluminacion",
+    href: "/catalogo?categoria=iluminacion",
     img: "/images/cat-iluminacion.png",
   },
 ];

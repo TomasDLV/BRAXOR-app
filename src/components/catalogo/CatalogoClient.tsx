@@ -33,9 +33,15 @@ const formatARS = (n: number) =>
 
 // ─── Main Client Component ────────────────────────────────────────────────────
 
-export default function CatalogoClient({ products }: { products: CatalogProduct[] }) {
+export default function CatalogoClient({
+  products,
+  initialCategory = "Todos",
+}: {
+  products: CatalogProduct[];
+  initialCategory?: string;
+}) {
   const [query, setQuery] = useState("");
-  const [activeCategory, setActiveCategory] = useState<CategoryFilter>("Todos");
+  const [activeCategory, setActiveCategory] = useState<CategoryFilter>(initialCategory);
 
   // Build category list from DB categories + fixed order
   const categories = useMemo(() => {

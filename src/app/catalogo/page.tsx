@@ -3,7 +3,26 @@ import CatalogoClient from "@/components/catalogo/CatalogoClient";
 
 export const dynamic = "force-dynamic";
 
-export default async function CatalogoPage() {
+// Maps URL ?categoria= param to exact DB category names
+const PARAM_TO_CATEGORY: Record<string, string> = {
+  llantas: "Llantas",
+  suspension: "Suspensión",
+  defensas: "Defensas",
+  iluminacion: "Iluminación",
+};
+
+export default async function CatalogoPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ categoria?: string }>;
+}) {
+  const { categoria } = await searchParams;
+
+  const initialCategory =
+    categoria && PARAM_TO_CATEGORY[categoria.toLowerCase()]
+      ? PARAM_TO_CATEGORY[categoria.toLowerCase()]
+      : "Todos";
+
   const products = await prisma.product.findMany({
     include: { category: true, brand: true },
     orderBy: { createdAt: "desc" },
@@ -21,5 +40,5 @@ export default async function CatalogoPage() {
     brand: { name: p.brand.name },
   }));
 
-  return <CatalogoClient products={serialized} />;
+  return <CatalogoClient products={serialized} initialCategory={initialCategory} />;
 }
