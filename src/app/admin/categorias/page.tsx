@@ -1,7 +1,8 @@
 import { prisma } from "@/lib/prisma";
 import CategoryForm from "@/components/admin/CategoryForm";
 import DeleteCategoryButton from "@/components/admin/DeleteCategoryButton";
-import { Tag, Layers, Pencil } from "lucide-react";
+import { Tag, Layers, Pencil, ImageOff } from "lucide-react";
+import Image from "next/image";
 import Link from "next/link";
 
 export const dynamic = "force-dynamic";
@@ -54,10 +55,10 @@ export default async function AdminCategoriasPage() {
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-zinc-800/80">
-                  {["Nombre", "Productos", "Acciones"].map((h, i) => (
+                  {["Imagen", "Nombre", "Productos", "Acciones"].map((h, i) => (
                     <th
                       key={i}
-                      className="text-left text-zinc-600 text-[10px] font-bold uppercase tracking-widest px-6 py-3 whitespace-nowrap last:pr-6 last:text-right"
+                      className="text-left text-zinc-600 text-[10px] font-bold uppercase tracking-widest px-6 py-3 whitespace-nowrap first:pl-6 last:pr-6 last:text-right"
                     >
                       {h}
                     </th>
@@ -67,8 +68,27 @@ export default async function AdminCategoriasPage() {
               <tbody className="divide-y divide-zinc-900">
                 {categories.map((cat) => (
                   <tr key={cat.id} className="hover:bg-zinc-900/50 transition-colors group">
-                    {/* Name */}
+                    {/* Imagen */}
                     <td className="pl-6 pr-4 py-4">
+                      <div className="w-12 h-12 rounded-xl bg-[#0d0d0d] border border-zinc-800 flex items-center justify-center overflow-hidden flex-shrink-0">
+                        {cat.imageUrl ? (
+                          <div className="relative w-full h-full">
+                            <Image
+                              src={cat.imageUrl}
+                              alt={cat.name}
+                              fill
+                              className="object-contain p-2"
+                              unoptimized
+                            />
+                          </div>
+                        ) : (
+                          <ImageOff size={16} className="text-zinc-700" />
+                        )}
+                      </div>
+                    </td>
+
+                    {/* Name */}
+                    <td className="px-6 py-4">
                       <div className="flex items-center gap-3">
                         <div className="w-8 h-8 rounded-lg bg-yellow-500/10 border border-yellow-500/20 flex items-center justify-center flex-shrink-0">
                           <Tag size={13} className="text-yellow-500" strokeWidth={2} />
