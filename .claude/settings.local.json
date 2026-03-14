@@ -9,7 +9,8 @@
       "Bash(mkdir -p \"C:/Users/tomas/braxor-app/src/app/admin/productos/[id]/edit\" && mkdir -p \"C:/Users/tomas/braxor-app/src/app/admin/categorias/[id]/edit\")",
       "Bash(cd \"C:/Users/tomas/braxor-app\" && npx tsc --noEmit 2>&1 | grep \"^src/\" | grep -v \"^src/app/page.tsx\")",
       "Bash(cd \"C:/Users/tomas/braxor-app\" && npx prisma migrate dev --name add_brand_logo_url --skip-generate 2>&1)",
-      "Bash(cd \"C:/Users/tomas/braxor-app\" && npx prisma generate 2>&1 | tail -5)"
+      "Bash(cd \"C:/Users/tomas/braxor-app\" && npx prisma generate 2>&1 | tail -5)",
+      "Bash(cd \"C:/Users/tomas/braxor-app\" && npx tsc --noEmit 2>&1 | grep \"^src/\" | grep -v \"CatalogoClient\")"
     ]
   }
 }

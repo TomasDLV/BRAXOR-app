@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
-// Aquí estamos importando tu componente Navbar
-import Navbar from "../components/layout/Navbar"; 
+import Navbar from "@/components/layout/Navbar";
+import Footer from "@/components/layout/Footer";
 
 export const metadata: Metadata = {
   title: "BRÄXOR | Equipamiento Off-Road",
@@ -15,12 +15,10 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="es">
-      <body className="antialiased bg-zinc-950 text-slate-50">
-        {/* Aquí le decimos a la web que el Navbar siempre va arriba */}
+      <body className="antialiased bg-[#0d0d0d] text-white">
         <Navbar />
-        
-        {/* Aquí adentro se inyecta tu página de inicio (page.tsx) */}
-        {children} 
+        {children}
+        <Footer />
       </body>
     </html>
   );
