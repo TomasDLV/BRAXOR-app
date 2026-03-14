@@ -4,9 +4,14 @@ import { motion } from "framer-motion";
 
 const VP = { once: true, margin: "-80px" };
 
-const BRANDS = ["BFGoodrich", "Warn", "ARB", "Baratec", "Method", "Rhino"];
+export interface HomeBrand {
+  id: string;
+  name: string;
+}
 
-export default function BrandsStrip() {
+export default function BrandsStrip({ brands }: { brands: HomeBrand[] }) {
+  if (brands.length === 0) return null;
+
   return (
     <section className="relative w-full bg-[#080808] border-y border-zinc-900 py-10 overflow-hidden">
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(234,179,8,0.03)_0%,transparent_70%)] pointer-events-none" />
@@ -28,9 +33,9 @@ export default function BrandsStrip() {
           viewport={VP}
           variants={{ visible: { transition: { staggerChildren: 0.07 } } }}
         >
-          {BRANDS.map((brand) => (
+          {brands.map((brand) => (
             <motion.span
-              key={brand}
+              key={brand.id}
               variants={{
                 hidden: { opacity: 0, y: 10 },
                 visible: { opacity: 1, y: 0, transition: { duration: 0.4 } },
@@ -38,7 +43,7 @@ export default function BrandsStrip() {
               whileHover={{ color: "#eab308", scale: 1.1, y: -2 }}
               className="text-zinc-600 font-black uppercase tracking-widest text-xs md:text-sm cursor-default transition-colors"
             >
-              {brand}
+              {brand.name}
             </motion.span>
           ))}
         </motion.div>

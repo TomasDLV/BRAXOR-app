@@ -10,16 +10,16 @@ export default async function CatalogoPage({
 }) {
   const { categoria } = await searchParams;
 
-  const [products, categories] = await Promise.all([
+  const [products, categories, brands] = await Promise.all([
     prisma.product.findMany({
       where: { isActive: true, category: { showInHome: true } },
       include: { category: true, brand: true },
       orderBy: { createdAt: "desc" },
     }),
     prisma.category.findMany({ where: { showInHome: true }, orderBy: { name: "asc" } }),
+    prisma.partBrand.findMany({ where: { showInHome: true }, orderBy: { name: "asc" } }),
   ]);
 
-  // Resuelve el param de URL contra las categorías reales (case-insensitive)
   const matchedCategory = categoria
     ? categories.find((c) => c.name.toLowerCase() === categoria.toLowerCase())?.name ?? "Todos"
     : "Todos";
@@ -43,10 +43,17 @@ export default async function CatalogoPage({
     imageUrl: c.imageUrl,
   }));
 
+  const serializedBrands = brands.map((b) => ({
+    id: b.id,
+    name: b.name,
+    logoUrl: b.logoUrl,
+  }));
+
   return (
     <CatalogoClient
       products={serializedProducts}
       categories={serializedCategories}
+      brands={serializedBrands}
       initialCategory={matchedCategory}
     />
   );

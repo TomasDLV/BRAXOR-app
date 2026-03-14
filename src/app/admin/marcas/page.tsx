@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import BrandForm from "@/components/admin/BrandForm";
 import DeleteBrandButton from "@/components/admin/DeleteBrandButton";
+import ToggleBrandButton from "@/components/admin/ToggleBrandButton";
 import { Shield, Layers, Pencil, ImageOff } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
@@ -55,7 +56,7 @@ export default async function AdminMarcasPage() {
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-zinc-800/80">
-                  {["Logo", "Nombre", "Productos", "Acciones"].map((h, i) => (
+                  {["Logo", "Nombre", "Productos", "Visibilidad", "Acciones"].map((h, i) => (
                     <th
                       key={i}
                       className="text-left text-zinc-600 text-[10px] font-bold uppercase tracking-widest px-6 py-3 whitespace-nowrap first:pl-6 last:pr-6 last:text-right"
@@ -112,6 +113,11 @@ export default async function AdminMarcasPage() {
                           {brand._count.products === 1 ? "producto" : "productos"}
                         </span>
                       </div>
+                    </td>
+
+                    {/* Visibilidad */}
+                    <td className="px-6 py-4">
+                      <ToggleBrandButton id={brand.id} showInHome={brand.showInHome} />
                     </td>
 
                     {/* Actions */}

@@ -1,17 +1,17 @@
 "use client";
 
 import { useToggleVisibility } from "@/hooks/useToggleVisibility";
-import { toggleCategoryVisibility } from "@/actions/categoryActions";
+import { toggleBrandVisibility } from "@/actions/brandActions";
 import { Eye, EyeOff } from "lucide-react";
 
-export default function ToggleCategoryButton({
+export default function ToggleBrandButton({
   id,
   showInHome,
 }: {
   id: string;
   showInHome: boolean;
 }) {
-  const { value, toggle, isPending } = useToggleVisibility(id, showInHome, toggleCategoryVisibility);
+  const { value, toggle, isPending } = useToggleVisibility(id, showInHome, toggleBrandVisibility);
 
   return (
     <button
