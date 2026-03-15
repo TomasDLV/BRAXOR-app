@@ -301,64 +301,194 @@ function DesktopScrolltelling() {
   );
 }
 
-// ─── MOBILE (< md): stacked full-bleed chapters ───────────────────────────────
+// ─── MOBILE (< md): sticky scrolltelling with persiana edge ──────────────────
 
-function MobileChapters() {
+function MobileScrolltelling() {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const { scrollYProgress } = useScroll({
+    target: containerRef,
+    offset: ["start start", "end end"],
+  });
+
+  // ── All useTransform calls at top level (Rules of Hooks) ───────────────────
+
+  // Intro overlay: fades out fast
+  const opacityIntro = useTransform(scrollYProgress, [0, 0.15], [1, 0]);
+  const pointerEventsIntro = useTransform(opacityIntro, (v) =>
+    v > 0.01 ? "auto" : "none"
+  );
+
+  // Chapter 1: fades in [0.15→0.2], full [0.2→0.4], fades out [0.4→0.45]
+  const opacityCap1 = useTransform(
+    scrollYProgress,
+    [0.15, 0.2, 0.4, 0.45],
+    [0, 1, 1, 0]
+  );
+
+  // Chapter 2: fades in [0.45→0.5], full [0.5→0.7], fades out [0.7→0.75]
+  const opacityCap2 = useTransform(
+    scrollYProgress,
+    [0.45, 0.5, 0.7, 0.75],
+    [0, 1, 1, 0]
+  );
+
+  // Chapter 3: fades in [0.75→0.8], stays full to end
+  const opacityCap3 = useTransform(scrollYProgress, [0.75, 0.8, 1], [0, 1, 1]);
+
+  // Progress bar
+  const scaleX = scrollYProgress;
+
+  // Persiana edge bar — slides up from below during Chapter 3
+  const yBarraMobile = useTransform(scrollYProgress, [0.7, 0.85], ["100%", "0%"]);
+
   return (
-    <div className="md:hidden flex flex-col">
-      {CHAPTERS.map((ch, i) => (
-        <div
-          key={ch.tag}
-          className="relative min-h-[85vh] flex flex-col justify-end overflow-hidden"
+    <div
+      ref={containerRef}
+      className="md:hidden relative h-[400vh] w-full bg-[#0a0a0a]"
+    >
+      <div className="sticky top-0 h-screen w-full overflow-hidden">
+
+        {/* Top progress bar */}
+        <motion.div
+          className="absolute top-0 left-0 right-0 h-[2px] bg-yellow-500 origin-left z-[60]"
+          style={{ scaleX }}
+        />
+
+        {/* ── Chapter image layers ────────────────────────────────────────── */}
+
+        {/* Chapter 1 */}
+        <motion.div
+          style={{ opacity: opacityCap1, backfaceVisibility: "hidden", WebkitFontSmoothing: "antialiased" }}
+          className="absolute inset-0 transform-gpu antialiased"
         >
-          {ch.image ? (
-            <>
-              <Image
-                src={ch.image}
-                alt=""
-                fill
-                sizes="100vw"
-                className="object-cover object-center"
-                aria-hidden
-              />
-              <div className="absolute inset-0 bg-black/65" />
-            </>
-          ) : (
-            <div className="absolute inset-0 bg-[#0d0d0d]" />
-          )}
-
-          <motion.div
-            initial={{ opacity: 0, y: 24 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, margin: "-80px" }}
-            transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
-            className={`relative z-10 p-7 ${
-              i === 0
-                ? "flex flex-col items-center text-center mb-10"
-                : "bg-black/65 backdrop-blur-sm border-l-2 border-yellow-500/40 mx-5 mb-8"
-            }`}
-          >
+          <Image
+            src={CHAPTERS[1].image!}
+            alt=""
+            fill
+            sizes="100vw"
+            className="object-cover object-center"
+            aria-hidden
+          />
+          <div className="absolute inset-0 bg-black/65" />
+          <div className="absolute inset-0 flex flex-col justify-end px-7 pt-7 pb-24">
             <p className="text-yellow-500 text-[9px] font-black uppercase tracking-[0.38em] mb-3">
-              {ch.tag}
+              {CHAPTERS[1].tag}
             </p>
-
             <ChapterTitle
-              lines={ch.titleLines}
+              lines={CHAPTERS[1].titleLines}
               className="text-[2.3rem] font-black uppercase text-white tracking-tighter leading-none mb-4"
             />
-
-            <div
-              className={`w-10 h-[2px] bg-yellow-500/40 mb-4 ${
-                i === 0 ? "mx-auto" : ""
-              }`}
-            />
-
-            <p className="text-zinc-200 text-sm leading-relaxed max-w-sm">
-              {ch.body}
+            <div className="w-10 h-[2px] bg-yellow-500/40 mb-4" />
+            <p className="text-zinc-200 text-sm leading-relaxed">
+              {CHAPTERS[1].body}
             </p>
+          </div>
+        </motion.div>
+
+        {/* Chapter 2 */}
+        <motion.div
+          style={{ opacity: opacityCap2, backfaceVisibility: "hidden", WebkitFontSmoothing: "antialiased" }}
+          className="absolute inset-0 transform-gpu antialiased"
+        >
+          <Image
+            src={CHAPTERS[2].image!}
+            alt=""
+            fill
+            sizes="100vw"
+            className="object-cover object-center"
+            aria-hidden
+          />
+          <div className="absolute inset-0 bg-black/65" />
+          <div className="absolute inset-0 flex flex-col justify-end px-7 pt-7 pb-24">
+            <p className="text-yellow-500 text-[9px] font-black uppercase tracking-[0.38em] mb-3">
+              {CHAPTERS[2].tag}
+            </p>
+            <ChapterTitle
+              lines={CHAPTERS[2].titleLines}
+              className="text-[2.3rem] font-black uppercase text-white tracking-tighter leading-none mb-4"
+            />
+            <div className="w-10 h-[2px] bg-yellow-500/40 mb-4" />
+            <p className="text-zinc-200 text-sm leading-relaxed">
+              {CHAPTERS[2].body}
+            </p>
+          </div>
+        </motion.div>
+
+        {/* Chapter 3 */}
+        <motion.div
+          style={{ opacity: opacityCap3, backfaceVisibility: "hidden", WebkitFontSmoothing: "antialiased" }}
+          className="absolute inset-0 transform-gpu antialiased"
+        >
+          <Image
+            src={CHAPTERS[3].image!}
+            alt=""
+            fill
+            sizes="100vw"
+            className="object-cover object-center"
+            aria-hidden
+          />
+          <div className="absolute inset-0 bg-black/65" />
+          <div className="absolute inset-0 flex flex-col justify-end px-7 pt-7 pb-24">
+            <p className="text-yellow-500 text-[9px] font-black uppercase tracking-[0.38em] mb-3">
+              {CHAPTERS[3].tag}
+            </p>
+            <ChapterTitle
+              lines={CHAPTERS[3].titleLines}
+              className="text-[2.3rem] font-black uppercase text-white tracking-tighter leading-none mb-4"
+            />
+            <div className="w-10 h-[2px] bg-yellow-500/40 mb-4" />
+            <p className="text-zinc-200 text-sm leading-relaxed">
+              {CHAPTERS[3].body}
+            </p>
+          </div>
+        </motion.div>
+
+        {/* ── Persiana edge bar ───────────────────────────────────────────── */}
+        <motion.div
+          style={{
+            y: yBarraMobile,
+            backgroundImage: "url('/images/persiana_edge.png')",
+          }}
+          className="absolute bottom-0 left-0 w-full h-16 z-50 bg-cover bg-center pointer-events-none"
+        />
+
+        {/* ── Intro overlay — z-50 covers everything beneath ─────────────── */}
+        <motion.div
+          style={{
+            opacity: opacityIntro,
+            pointerEvents: pointerEventsIntro,
+          }}
+          className="absolute inset-0 z-50 flex flex-col items-center justify-center bg-[#0a0a0a] px-7"
+        >
+          <p className="text-yellow-500 text-[9px] font-black uppercase tracking-[0.44em] mb-6 text-center">
+            {CHAPTERS[0].tag}
+          </p>
+
+          <ChapterTitle
+            lines={CHAPTERS[0].titleLines}
+            className="text-4xl font-black uppercase text-white tracking-tighter leading-[0.88] mb-6 text-center"
+          />
+
+          <div className="w-12 h-[2px] bg-yellow-500/50 mb-6" />
+
+          <p className="text-zinc-200 text-sm leading-relaxed text-center max-w-xs">
+            {CHAPTERS[0].body}
+          </p>
+
+          {/* Scroll nudge */}
+          <motion.div
+            animate={{ y: [0, 9, 0] }}
+            transition={{ repeat: Infinity, duration: 1.8, ease: "easeInOut" }}
+            className="absolute bottom-10 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2"
+          >
+            <span className="text-zinc-600 text-[9px] uppercase tracking-[0.3em] font-bold">
+              Scroll
+            </span>
+            <div className="w-px h-8 bg-gradient-to-b from-yellow-500/40 to-transparent" />
           </motion.div>
-        </div>
-      ))}
+        </motion.div>
+
+      </div>
     </div>
   );
 }
@@ -369,7 +499,7 @@ export default function TallerSection() {
   return (
     <>
       <DesktopScrolltelling />
-      <MobileChapters />
+      <MobileScrolltelling />
     </>
   );
 }
