@@ -96,6 +96,9 @@ function DesktopScrolltelling() {
   // Progress bar
   const scaleX = scrollYProgress;
 
+  // ── Persiana edge bar — slides up from below during Chapter 3 ─────────────
+  const yBarra = useTransform(scrollYProgress, [0.7, 0.85], ["100%", "0%"]);
+
   return (
     // 'relative' is REQUIRED by Framer Motion for correct scroll offset calculation
     <div
@@ -241,7 +244,16 @@ function DesktopScrolltelling() {
           </motion.div>
         </div>
 
-        {/* ── LAYER 3: Intro overlay — z-50 covers both columns ──────────── */}
+        {/* ── LAYER 3: Persiana edge bar — slides up from below on Chapter 3 ─ */}
+        <motion.div
+          style={{
+            y: yBarra,
+            backgroundImage: "url('/images/persiana_edge.png')",
+          }}
+          className="absolute bottom-0 left-0 w-full h-12 md:h-16 z-[55] bg-cover bg-center pointer-events-none"
+        />
+
+        {/* ── LAYER 4: Intro overlay — z-50 covers both columns ──────────── */}
         {/* bg-[#0a0a0a] ensures a solid mask while fading out */}
         <motion.div
           style={{
