@@ -6,13 +6,14 @@ import { Package, TrendingUp, Archive, Layers } from "lucide-react";
 export const dynamic = "force-dynamic";
 
 export default async function AdminPage() {
-  const [products, categories, brands] = await Promise.all([
+  const [products, categories, brands, vehicles] = await Promise.all([
     prisma.product.findMany({
       include: { category: true, brand: true },
       orderBy: { createdAt: "desc" },
     }),
     prisma.category.findMany({ orderBy: { name: "asc" } }),
     prisma.partBrand.findMany({ orderBy: { name: "asc" } }),
+    prisma.vehicle.findMany({ orderBy: [{ make: "asc" }, { model: "asc" }] }),
   ]);
 
   const totalStock = products.reduce((acc, p) => acc + p.stock, 0);
@@ -62,7 +63,7 @@ export default async function AdminPage() {
 
       {/* ── CREATE FORM ── */}
       <div className="mb-8">
-        <CreateProductForm categories={categories} brands={brands} />
+        <CreateProductForm categories={categories} brands={brands} vehicles={vehicles} />
       </div>
 
       {/* ── PRODUCTS TABLE ── */}
