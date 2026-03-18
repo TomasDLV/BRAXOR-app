@@ -11,7 +11,8 @@
       "Bash(cd \"C:/Users/tomas/braxor-app\" && npx prisma migrate dev --name add_brand_logo_url --skip-generate 2>&1)",
       "Bash(cd \"C:/Users/tomas/braxor-app\" && npx prisma generate 2>&1 | tail -5)",
       "Bash(cd \"C:/Users/tomas/braxor-app\" && npx tsc --noEmit 2>&1 | grep \"^src/\" | grep -v \"CatalogoClient\")",
-      "Bash(grep:*)"
+      "Bash(grep:*)",
+      "Bash(npm i:*)"
     ]
   }
 }
