@@ -4,6 +4,15 @@ import "./globals.css";
 export const metadata: Metadata = {
   title: "BRÄXOR | Equipamiento Off-Road",
   description: "Equipamiento que marca la diferencia. Encontrá llantas, suspensiones y más para tu camioneta en Yerba Buena.",
+  manifest: "/manifest.json",
+  icons: {
+    apple: "/apple-icon.png",
+  },
+  appleWebApp: {
+    capable: true,
+    title: "BRÄXOR",
+    statusBarStyle: "black-translucent",
+  },
 };
 
 export default function RootLayout({
