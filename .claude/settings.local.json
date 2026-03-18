@@ -12,7 +12,8 @@
       "Bash(cd \"C:/Users/tomas/braxor-app\" && npx prisma generate 2>&1 | tail -5)",
       "Bash(cd \"C:/Users/tomas/braxor-app\" && npx tsc --noEmit 2>&1 | grep \"^src/\" | grep -v \"CatalogoClient\")",
       "Bash(grep:*)",
-      "Bash(npm i:*)"
+      "Bash(npm i:*)",
+      "Bash(npm run:*)"
     ]
   }
 }
