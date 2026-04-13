@@ -110,7 +110,7 @@ export default function HeroSection() {
             <motion.button
               whileHover={{ scale: 1.03 }}
               whileTap={{ scale: 0.97 }}
-              className="flex items-center gap-2 text-white/70 hover:text-white border border-white/20 hover:border-white/40 font-bold py-4 px-8 rounded-xl uppercase tracking-widest text-sm transition-colors cursor-pointer"
+              className="btn-glass flex items-center gap-2 text-white font-bold py-4 px-8 uppercase tracking-widest text-sm cursor-pointer"
             >
               Contacto
               <ArrowRight size={15} strokeWidth={2.5} />

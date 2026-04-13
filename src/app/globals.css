@@ -10,3 +10,45 @@ body {
   from { transform: translateX(0); }
   to   { transform: translateX(-50%); }
 }
+
+/* ── Background radial overlay ──────────────────────────────────────────────── */
+.background-overlay {
+  background: radial-gradient(
+    circle at 50% 0%,
+    rgba(255, 195, 0, 0.08) 0%,
+    rgba(0, 0, 0, 0.7) 60%,
+    rgba(0, 0, 0, 0.95) 100%
+  );
+}
+
+/* ── Glassmorphism cards ─────────────────────────────────────────────────────── */
+.glass-card {
+  background: rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 20px;
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.3);
+  transition: all 0.3s ease;
+}
+
+.glass-card:hover {
+  background: rgba(255, 255, 255, 0.06);
+  transform: translateY(-3px);
+  border-color: rgba(255, 255, 255, 0.15);
+  box-shadow: 0 8px 40px rgba(0, 0, 0, 0.4);
+}
+
+/* ── Glass buttons (CTAs secundarios) ───────────────────────────────────────── */
+.btn-glass {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 195, 0, 0.4);
+  color: #fff;
+  border-radius: 12px;
+  transition: all 0.3s ease;
+}
+
+.btn-glass:hover {
+  background: rgba(255, 195, 0, 0.15);
+  border-color: rgba(255, 195, 0, 0.7);
+}

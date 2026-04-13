@@ -44,6 +44,9 @@ export default async function Home() {
         backgroundColor: "#0a0a0a",
       }}
     >
+      {/* Radial gradient overlay — makes glassmorphism visible on the texture */}
+      <div className="background-overlay fixed inset-0 pointer-events-none z-0" />
+
       {/* id="hero-section" → SnapController target */}
       <div id="hero-section">
         <HeroSection />

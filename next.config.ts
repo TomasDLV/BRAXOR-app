@@ -13,4 +13,5 @@ const nextConfig: NextConfig = {
 export default withSerwist({
   swSrc: "src/app/sw.ts",
   swDest: "public/sw.js",
+  disable: process.env.NODE_ENV !== "production",
 })(nextConfig);

@@ -115,6 +115,7 @@ export async function updateProduct(
     isFeatured: formData.get("isFeatured") === "on",
     isNew: formData.get("isNew") === "on",
     imageUrl: formData.get("imageUrl") as string | null,
+    images: formData.get("images") as string | null,
   };
 
   const errors: Record<string, string> = {};
@@ -130,6 +131,7 @@ export async function updateProduct(
 
   const vehicleIds = formData.getAll("vehicleId") as string[];
   const parsedPrice = raw.price?.trim() ? Number(raw.price) : null;
+  const parsedImages: string[] = raw.images ? JSON.parse(raw.images) : [];
 
   try {
     await prisma.product.update({
@@ -144,6 +146,7 @@ export async function updateProduct(
         brandId: raw.brandId,
         isFeatured: raw.isFeatured,
         isNew: raw.isNew,
+        images: parsedImages,
         ...(parsedPrice === null ? { showPrice: false } : {}),
         ...(raw.imageUrl?.trim() ? { imageUrl: raw.imageUrl.trim() } : {}),
         vehicles: { set: vehicleIds.map((id) => ({ id })) },

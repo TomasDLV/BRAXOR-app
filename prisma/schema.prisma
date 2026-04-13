@@ -52,7 +52,8 @@ model Product {
   isActive    Boolean   @default(true)
   showPrice   Boolean   @default(true)
   imageUrl    String?
-  
+  images      String[]
+
   categoryId  String
   category    Category  @relation(fields: [categoryId], references: [id])
   

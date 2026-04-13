@@ -1,10 +1,10 @@
 import { prisma } from "@/lib/prisma";
 import { notFound } from "next/navigation";
-import Image from "next/image";
 import Link from "next/link";
-import { ArrowLeft, Zap, Star, MessageCircle, ImageOff, Tag, Car } from "lucide-react";
+import { ArrowLeft, Zap, Star, MessageCircle, Tag, Car } from "lucide-react";
+import ProductCarousel from "@/components/catalogo/ProductCarousel";
 
-const WA_NUMBER = "5493816000000"; // ← Reemplazar con el número real
+const WA_NUMBER = "5493816000000";
 
 const formatARS = (n: number) =>
   new Intl.NumberFormat("es-AR", {
@@ -31,6 +31,12 @@ export default async function ProductDetailPage({
 
   if (!product) notFound();
 
+  // Portada primero, luego fotos adicionales de la galería
+  const allImages: string[] = [
+    ...(product.imageUrl ? [product.imageUrl] : []),
+    ...(product.images ?? []),
+  ];
+
   const waText = encodeURIComponent(
     `Hola, quiero consultar por el producto: ${product.name} (SKU: ${product.sku})`
   );
@@ -38,7 +44,7 @@ export default async function ProductDetailPage({
 
   return (
     <main className="min-h-screen bg-[#0a0a0a]">
-      {/* Carbon texture */}
+      {/* Background texture */}
       <div
         className="fixed inset-0 pointer-events-none opacity-[0.025]"
         style={{
@@ -61,61 +67,22 @@ export default async function ProductDetailPage({
       <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 pb-20">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-16 items-start">
 
-          {/* ── LEFT: IMAGE ── */}
-          <div className="relative">
-            {/* Glow */}
-            <div className="absolute inset-0 bg-yellow-500/5 rounded-3xl blur-3xl scale-90 pointer-events-none" />
-
-            <div className="relative bg-[#111] border border-zinc-800 rounded-3xl overflow-hidden aspect-square flex items-center justify-center p-10 shadow-[0_0_80px_rgba(0,0,0,0.6)]">
-              {/* Radial glow */}
-              <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_rgba(234,179,8,0.07)_0%,_transparent_65%)]" />
-
-              {product.imageUrl ? (
-                <div className="relative w-full h-full">
-                  <Image
-                    src={product.imageUrl}
-                    alt={product.name}
-                    fill
-                    className="object-contain drop-shadow-[0_20px_40px_rgba(0,0,0,0.95)]"
-                    priority
-                    unoptimized
-                  />
-                </div>
-              ) : (
-                <div className="flex flex-col items-center gap-4 opacity-20">
-                  <ImageOff size={64} className="text-zinc-400" />
-                  <span className="text-zinc-500 text-sm uppercase tracking-widest font-bold">
-                    Sin imagen
-                  </span>
-                </div>
-              )}
-
-              {/* Badges overlay */}
-              <div className="absolute top-4 left-4 flex flex-col gap-2">
-                {product.isNew && (
-                  <span className="flex items-center gap-1.5 bg-yellow-500 text-black text-xs font-black uppercase tracking-widest px-3 py-1.5 rounded-lg shadow-[0_0_20px_rgba(234,179,8,0.5)]">
-                    <Zap size={11} strokeWidth={3} />
-                    Nuevo
-                  </span>
-                )}
-                {product.isFeatured && (
-                  <span className="flex items-center gap-1.5 bg-zinc-800 text-zinc-300 text-xs font-black uppercase tracking-widest px-3 py-1.5 rounded-lg border border-zinc-700">
-                    <Star size={11} strokeWidth={3} />
-                    Destacado
-                  </span>
-                )}
-              </div>
-            </div>
-          </div>
+          {/* ── LEFT: CAROUSEL ── */}
+          <ProductCarousel
+            images={allImages}
+            productName={product.name}
+            isNew={product.isNew}
+            isFeatured={product.isFeatured}
+          />
 
           {/* ── RIGHT: INFO ── */}
           <div className="flex flex-col gap-6 lg:pt-4">
             {/* Brand + Category */}
             <div className="flex flex-wrap items-center gap-2">
-              <span className="bg-zinc-900 border border-zinc-700 text-zinc-300 text-xs font-bold uppercase tracking-widest px-3 py-1.5 rounded-lg">
+              <span className="bg-white/5 border border-white/10 text-zinc-300 text-xs font-bold uppercase tracking-widest px-3 py-1.5 rounded-lg">
                 {product.brand.name}
               </span>
-              <span className="flex items-center gap-1.5 bg-zinc-900/60 border border-zinc-800 text-zinc-500 text-xs font-bold uppercase tracking-widest px-3 py-1.5 rounded-lg">
+              <span className="flex items-center gap-1.5 bg-white/[0.03] border border-white/[0.07] text-zinc-500 text-xs font-bold uppercase tracking-widest px-3 py-1.5 rounded-lg">
                 <Tag size={10} strokeWidth={2.5} />
                 {product.category.name}
               </span>
@@ -132,7 +99,7 @@ export default async function ProductDetailPage({
             </p>
 
             {/* Divider */}
-            <div className="h-px bg-gradient-to-r from-yellow-500/30 via-zinc-800 to-transparent" />
+            <div className="h-px bg-gradient-to-r from-yellow-500/30 via-white/10 to-transparent" />
 
             {/* Price */}
             <div>
@@ -157,7 +124,7 @@ export default async function ProductDetailPage({
 
             {/* Description */}
             {product.description && (
-              <div className="bg-[#111] border border-zinc-800 rounded-xl p-5">
+              <div className="bg-white/[0.03] border border-white/[0.08] rounded-xl p-5">
                 <p className="text-zinc-600 text-[10px] uppercase tracking-widest font-bold mb-2">
                   Descripción
                 </p>
@@ -167,7 +134,7 @@ export default async function ProductDetailPage({
 
             {/* Vehículos compatibles */}
             {product.vehicles.length > 0 && (
-              <div className="bg-[#111] border border-zinc-800 rounded-xl p-5">
+              <div className="bg-white/[0.03] border border-white/[0.08] rounded-xl p-5">
                 <div className="flex items-center gap-2 mb-3">
                   <Car size={13} className="text-yellow-500" strokeWidth={2.5} />
                   <p className="text-zinc-400 text-[10px] uppercase tracking-widest font-bold">
@@ -176,10 +143,10 @@ export default async function ProductDetailPage({
                 </div>
                 <div className="flex flex-wrap gap-2">
                   {Object.entries(
-                    product.vehicles.reduce<Record<string, typeof product.vehicles>>((acc, v) => {
-                      (acc[v.make] ??= []).push(v);
-                      return acc;
-                    }, {})
+                    product.vehicles.reduce<Record<string, typeof product.vehicles>>(
+                      (acc, v) => { (acc[v.make] ??= []).push(v); return acc; },
+                      {}
+                    )
                   ).map(([make, models]) => (
                     <div key={make} className="flex flex-col gap-1.5">
                       <p className="text-zinc-600 text-[9px] font-black uppercase tracking-widest">{make}</p>
@@ -187,7 +154,7 @@ export default async function ProductDetailPage({
                         {models.map((v) => (
                           <span
                             key={v.id}
-                            className="flex items-center gap-1.5 bg-zinc-900 border border-zinc-700 text-zinc-300 text-xs font-semibold px-2.5 py-1 rounded-lg"
+                            className="flex items-center gap-1.5 bg-white/5 border border-white/10 text-zinc-300 text-xs font-semibold px-2.5 py-1 rounded-lg"
                           >
                             {v.model}
                             {(v.yearStart || v.yearEnd) && (

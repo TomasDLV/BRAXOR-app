@@ -63,7 +63,7 @@ export default function FinalCTA() {
               <motion.button
                 whileHover={{ scale: 1.03 }}
                 whileTap={{ scale: 0.97 }}
-                className="flex items-center justify-center gap-2 bg-[#25d366]/10 hover:bg-[#25d366] border border-[#25d366]/40 hover:border-[#25d366] text-[#25d366] hover:text-white font-black uppercase tracking-widest text-sm px-10 py-4 rounded-xl transition-all cursor-pointer w-full sm:w-auto"
+                className="btn-glass flex items-center justify-center gap-2 font-black uppercase tracking-widest text-sm px-10 py-4 cursor-pointer w-full sm:w-auto"
               >
                 WhatsApp
               </motion.button>
