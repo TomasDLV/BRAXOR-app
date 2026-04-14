@@ -9,6 +9,7 @@ import {
   SlidersHorizontal, X, Car, ChevronDown,
 } from "lucide-react";
 import { CategoryIcon } from "@/lib/category-icons";
+import AddToCartButton from "@/components/cart/AddToCartButton";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -240,24 +241,22 @@ export default function CatalogoClient({
   }
 
   return (
-    <main className="relative min-h-screen bg-[#0a0a0a]">
+    <main
+      className="relative min-h-screen bg-[#0a0a0a]"
+      style={{
+        backgroundImage: "url('/images/fondo-bg.png')",
+        backgroundSize: "cover",
+        backgroundPosition: "center top",
+        backgroundAttachment: "fixed",
+      }}
+    >
 
-      {/* Fondo inmersivo */}
-      <div className="fixed inset-0 z-[-1]">
-        <Image
-          src="/images/taller.jpg"
-          alt=""
-          fill
-          sizes="100vw"
-          className="object-cover object-center opacity-10"
-          aria-hidden
-        />
-        <div className="absolute inset-0 bg-gradient-to-b from-[#0a0a0a]/60 via-[#0a0a0a]/80 to-[#0a0a0a]" />
-        <div className="background-overlay absolute inset-0" />
-      </div>
+
+      {/* Overlay oscuro sobre el fondo */}
+      <div className="fixed inset-0 bg-[#0a0a0a]/50 pointer-events-none z-0" />
 
       {/* ── HEADER ── */}
-      <section className="relative w-full pt-16 pb-12 px-4 overflow-hidden border-b border-white/[0.06]">
+      <section className="relative z-10 w-full pt-16 pb-12 px-4 overflow-hidden border-b border-white/[0.06]">
         <div className="absolute -top-20 -left-20 w-72 h-72 bg-yellow-500/10 rounded-full blur-3xl pointer-events-none" />
         <div className="relative z-10 max-w-7xl mx-auto">
           <motion.div
@@ -281,7 +280,7 @@ export default function CatalogoClient({
       </section>
 
       {/* ── MOBILE STICKY TOP BAR ── */}
-      <div className="lg:hidden sticky top-[72px] z-40 bg-[#0a0a0a]/95 backdrop-blur-xl border-b border-white/[0.06] px-4 py-3">
+      <div className="lg:hidden sticky top-[72px] z-40 relative bg-[#0a0a0a]/95 backdrop-blur-xl border-b border-white/[0.06] px-4 py-3">
         <div className="flex gap-3 items-center">
           <div className="relative flex-1">
             <Search size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-zinc-500 pointer-events-none" />
@@ -313,7 +312,7 @@ export default function CatalogoClient({
       </div>
 
       {/* ── BODY ── */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8 flex gap-8 items-start">
+      <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 py-8 flex gap-8 items-start">
 
         {/* ── DESKTOP SIDEBAR (Glass Panel) ── */}
         <aside className="hidden lg:flex sticky top-24 w-64 xl:w-72 flex-shrink-0">
@@ -719,10 +718,25 @@ function ProductCard({ product, index }: { product: CatalogProduct; index: numbe
             </div>
           </div>
 
-          {/* VER DETALLES button */}
-          <div className="mt-4 flex items-center justify-between w-full bg-transparent border border-white/10 group-hover:border-yellow-500/70 text-zinc-300 group-hover:text-white rounded-xl py-2 px-4 transition-all text-sm uppercase tracking-widest font-semibold">
-            <span>Ver detalles</span>
-            <ArrowRight size={14} strokeWidth={2.5} className="group-hover:translate-x-1 transition-transform duration-200" />
+          {/* ACTIONS */}
+          <div className="mt-4 flex items-center gap-2">
+            <div className="flex-1 flex items-center justify-between bg-transparent border border-white/10 group-hover:border-yellow-500/70 text-zinc-300 group-hover:text-white rounded-xl py-2 px-4 transition-all text-sm uppercase tracking-widest font-semibold">
+              <span>Ver detalles</span>
+              <ArrowRight size={14} strokeWidth={2.5} className="group-hover:translate-x-1 transition-transform duration-200" />
+            </div>
+            <AddToCartButton
+              variant="icon"
+              product={{
+                id: product.id,
+                name: product.name,
+                brand: product.brand.name,
+                category: product.category.name,
+                price: product.showPrice ? product.price : null,
+                showPrice: product.showPrice,
+                imageUrl: product.imageUrl,
+                sku: product.sku,
+              }}
+            />
           </div>
 
           {/* Bottom accent line */}

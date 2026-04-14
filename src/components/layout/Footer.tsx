@@ -17,18 +17,16 @@ export default async function Footer() {
     select: { id: true, name: true },
   });
   return (
-    <footer className="relative w-full bg-[#050505] overflow-hidden">
+    <footer className="relative w-full overflow-hidden" style={{
+      backgroundImage: "url('/images/footer-bg.png')",
+      backgroundSize: "cover",
+      backgroundPosition: "center",
+    }}>
+      {/* Overlay oscuro sobre el fondo */}
+      <div className="absolute inset-0 bg-[#050505]/85 pointer-events-none" />
+
       {/* Yellow brand line — top accent */}
       <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-yellow-500 to-transparent" />
-
-      {/* Subtle concrete noise */}
-      <div
-        className="absolute inset-0 pointer-events-none opacity-[0.025]"
-        style={{
-          backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)' opacity='1'/%3E%3C/svg%3E")`,
-          backgroundSize: "200px 200px",
-        }}
-      />
 
       <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 pt-16 pb-8">
         {/* ── Grid ── */}
@@ -126,12 +124,12 @@ export default async function Footer() {
               <li className="flex items-start gap-3">
                 <Phone size={14} className="text-yellow-500 flex-shrink-0 mt-0.5" strokeWidth={2} />
                 <a
-                  href="https://wa.me/5493816000000"
+                  href="https://wa.me/5493816390854"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="text-zinc-400 hover:text-white text-xs transition-colors"
                 >
-                  +54 9 381 600-0000
+                  +54 9 381 639-0854
                 </a>
               </li>
             </ul>
@@ -168,7 +166,7 @@ export default async function Footer() {
 
             {/* WhatsApp CTA */}
             <a
-              href="https://wa.me/5493816000000"
+              href="https://wa.me/5493816390854"
               target="_blank"
               rel="noopener noreferrer"
               className="mt-6 flex items-center justify-center gap-2 bg-[#25d366]/10 hover:bg-[#25d366] border border-[#25d366]/30 hover:border-[#25d366] text-[#25d366] hover:text-white text-[10px] font-black uppercase tracking-widest px-4 py-2.5 rounded-lg transition-all duration-200"

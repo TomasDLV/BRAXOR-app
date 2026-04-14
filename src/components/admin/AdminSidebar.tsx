@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState, useEffect } from "react";
-import { LayoutDashboard, Package, Tag, Shield, Car, ExternalLink, Zap, Menu, X } from "lucide-react";
+import { LayoutDashboard, Package, Tag, Shield, Car, ExternalLink, Zap, Menu, X, FileSpreadsheet } from "lucide-react";
 import SignOutButton from "@/components/admin/SignOutButton";
 
 const NAV = [
@@ -12,6 +12,7 @@ const NAV = [
   { label: "Categorías", href: "/admin/categorias", icon: Tag },
   { label: "Marcas", href: "/admin/marcas", icon: Shield },
   { label: "Modelos", href: "/admin/modelos", icon: Car },
+  { label: "Importar Excel", href: "/admin/importar", icon: FileSpreadsheet },
 ];
 
 function SidebarNav({

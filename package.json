@@ -25,7 +25,8 @@
     "react-dom": "19.2.3",
     "serwist": "^9.5.7",
     "three": "^0.183.2",
-    "uploadthing": "^7.7.4"
+    "uploadthing": "^7.7.4",
+    "xlsx": "^0.18.5"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",

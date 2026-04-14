@@ -244,14 +244,6 @@ function DesktopScrolltelling() {
           </motion.div>
         </div>
 
-        {/* ── LAYER 3: Persiana edge bar — slides up from below on Chapter 3 ─ */}
-        <motion.div
-          style={{
-            y: yBarra,
-            backgroundImage: "url('/images/persiana_edge.png')",
-          }}
-          className="absolute bottom-0 left-0 w-full h-12 md:h-16 z-[55] bg-cover bg-center pointer-events-none"
-        />
 
         {/* ── LAYER 4: Intro overlay — z-50 covers both columns ──────────── */}
         {/* bg-[#0a0a0a] ensures a solid mask while fading out */}
@@ -443,14 +435,6 @@ function MobileScrolltelling() {
           </div>
         </motion.div>
 
-        {/* ── Persiana edge bar ───────────────────────────────────────────── */}
-        <motion.div
-          style={{
-            y: yBarraMobile,
-            backgroundImage: "url('/images/persiana_edge.png')",
-          }}
-          className="absolute bottom-0 left-0 w-full h-16 z-50 bg-cover bg-center pointer-events-none"
-        />
 
         {/* ── Intro overlay — z-50 covers everything beneath ─────────────── */}
         <motion.div

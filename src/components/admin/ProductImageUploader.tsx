@@ -61,7 +61,7 @@ export default function ProductImageUploader({ onUploadComplete, existingUrl }: 
           <Upload size={24} className="text-zinc-600 group-hover:text-yellow-500/70 transition-colors" />
           <div className="text-center">
             <p className="text-zinc-500 text-xs font-semibold">Hacé click o arrastrá una imagen</p>
-            <p className="text-zinc-700 text-[10px] mt-0.5">PNG, JPG, WEBP · Máx. 4MB</p>
+            <p className="text-zinc-700 text-[10px] mt-0.5">PNG, JPG, WEBP · Máx. 16MB</p>
           </div>
           <input
             ref={inputRef}

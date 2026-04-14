@@ -44,6 +44,7 @@ export async function createProduct(
     isFeatured: formData.get("isFeatured") === "on",
     isNew: formData.get("isNew") === "on",
     imageUrl: formData.get("imageUrl") as string | null,
+    images: formData.get("images") as string | null,
   };
 
   // — Validation —
@@ -60,6 +61,7 @@ export async function createProduct(
 
   const vehicleIds = formData.getAll("vehicleId") as string[];
   const parsedPrice = raw.price?.trim() ? Number(raw.price) : null;
+  const parsedImages: string[] = raw.images ? JSON.parse(raw.images) : [];
 
   try {
     await prisma.product.create({
@@ -74,6 +76,7 @@ export async function createProduct(
         isFeatured: raw.isFeatured,
         isNew: raw.isNew,
         imageUrl: raw.imageUrl?.trim() || null,
+        images: parsedImages,
         showPrice: parsedPrice !== null,
         ...(vehicleIds.length > 0 && {
           vehicles: { connect: vehicleIds.map((id) => ({ id })) },

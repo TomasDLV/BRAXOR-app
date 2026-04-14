@@ -1,300 +1,388 @@
 "use client";
 
-import { motion } from "framer-motion";
+import { motion, useScroll, useTransform } from "framer-motion";
+import Image from "next/image";
 import Link from "next/link";
-import { ArrowRight, Shield, Zap } from "lucide-react";
+import { useRef } from "react";
+import { ArrowRight, ArrowUpRight, MapPin } from "lucide-react";
 
 // ─── Brand Data ───────────────────────────────────────────────────────────────
 
 const BRANDS = [
   {
-    name: "BFGoodrich",
-    tagline: "Domination since 1870.",
+    id: "steel-tiger",
+    name: "Steel Tiger",
+    tagline: "Viví tu Pick-up.",
+    sub: "Equipada con Steel Tiger.",
     description:
-      "Neumáticos de competición y uso extremo. Los mismos que corren el Baja 1000 y el Dakar. BFGoodrich define el estándar en tracción off-road con su línea All-Terrain T/A KO2 y Mud-Terrain T/A KM3.",
-    accent: "#eab308",
-    tags: ["All-Terrain", "Mud-Terrain", "Baja 1000", "Dakar"],
-    imagePlaceholder: "Imagen de Acción BFGoodrich",
-    logoPlaceholder: "Logo BFGoodrich",
+      "Fabricante argentino especializado en accesorios premium para camionetas y SUVs. Diseñan y producen sus propias líneas de barras de trabajo, cobertores de caja y sistemas de enganche para los modelos más populares del mercado: Hilux, Amarok, Ranger, Frontier y más.",
+    origin: "Río Cuarto, Córdoba · Argentina",
+    tags: ["Barras de Trabajo", "Tapas Top Tiger", "Estribos", "Paragolpes", "Enganches", "Off Road"],
+    logoUrl: "/images/steeltiger-logo.png" as string | null,
+    imageUrl: "/images/steeltiger-hero.jpg" as string | null,
+    imagePlaceholder: "steeltiger-hero.jpg",
+    logoPh: "steeltiger-logo.png",
+    accent: "#f59e0b",
+    accentDim: "rgba(245,158,11,0.12)",
+    accentBorder: "rgba(245,158,11,0.3)",
+    website: "steeltiger.ar",
   },
   {
-    name: "Baratec",
-    tagline: "Ingeniería para el terreno argentino.",
+    id: "driven",
+    name: "Driven",
+    tagline: "Equipamiento Superior.",
+    sub: "Diseñamos pensando en el uso real.",
     description:
-      "Especialistas en barras LED, estribos tubulares y accesorios de protección diseñados y manufacturados para las exigencias únicas de las rutas y pistas de Sudamérica.",
-    accent: "#eab308",
-    tags: ["Barras LED", "Estribos", "Protección", "Nacional"],
-    imagePlaceholder: "Imagen de Producto Baratec",
-    logoPlaceholder: "Logo Baratec",
+      "Marca argentina de equipamiento premium para 4x4, camionetas y aventura overland. Desde compresores portátiles hasta cajas estancas de 128L y bidones homologados — todo pensado para condiciones exigentes en el campo.",
+    origin: "Argentina",
+    tags: ["Compresores", "Cajas Estancas", "Iluminación LED", "Bidones", "Herramientas", "Overlanding"],
+    logoUrl: "/images/Driven-logo.png" as string | null,
+    imageUrl: "/images/driven-hero.jpg" as string | null,
+    imagePlaceholder: "driven-hero.jpg",
+    logoPh: "Driven-logo.png ✓",
+    accent: "#22c55e",
+    accentDim: "rgba(34,197,94,0.10)",
+    accentBorder: "rgba(34,197,94,0.28)",
+    website: "driven.com.ar",
   },
   {
-    name: "Rhino",
-    tagline: "Built for the wild.",
+    id: "kraken",
+    name: "Kraken",
+    tagline: "Accesorios de caja.",
+    sub: "Fuerza y funcionalidad para tu pickup.",
     description:
-      "Defensas, racks y sistemas de protección de carrocería con la resistencia de un rinoceronte. Acero de alta resistencia, acabados anticorrosión y diseño funcional que no sacrifica estética.",
-    accent: "#eab308",
-    tags: ["Defensas", "Bull Bars", "Racks", "Steel"],
-    imagePlaceholder: "Imagen de Defensa Rhino",
-    logoPlaceholder: "Logo Rhino",
-  },
-  {
-    name: "Method Race Wheels",
-    tagline: "Race-proven. Road-ready.",
-    description:
-      "Llantas forjadas en el circuito de competición y transferidas a la calle. El favorito de los pilotos del Ultra4 y del SCORE. Cada diseño nace en la pista, no en un escritorio.",
-    accent: "#eab308",
-    tags: ["Forged", "Ultra4", "SCORE", "Race"],
-    imagePlaceholder: "Imagen de Llanta Method",
-    logoPlaceholder: "Logo Method Race Wheels",
-  },
-  {
-    name: "Warn",
-    tagline: "Recovery. Always.",
-    description:
-      "El líder global en winches y equipos de recuperación. Desde el legendario 9.5XP hasta los sistemas de iluminación Trail Series. Warn es el seguro de vida de tu vehículo en el campo.",
-    accent: "#eab308",
-    tags: ["Winches", "Recuperación", "Iluminación", "Legend"],
-    imagePlaceholder: "Imagen de Winch Warn",
-    logoPlaceholder: "Logo Warn",
-  },
-  {
-    name: "ARB",
-    tagline: "The off-road authority.",
-    description:
-      "Desde Old Man Emu hasta los air lockers, ARB tiene décadas fabricando el equipamiento de referencia para expediciones y aventura extrema. Ingeniería australiana probada en los terrenos más duros del mundo.",
-    accent: "#eab308",
-    tags: ["Old Man Emu", "Air Lockers", "Expedición", "Australia"],
-    imagePlaceholder: "Imagen de Producto ARB",
-    logoPlaceholder: "Logo ARB",
+      "Fabricante argentino de tapas y accesorios para la caja de pickup trucks. Producen tapas retráctiles, plegables, estribos retráctiles y barras antivuelco para los modelos más vendidos del país, con foco en funcionalidad, seguridad y estilo.",
+    origin: "Argentina",
+    tags: ["Tapas Retráctiles", "Tapas Plegables", "Estribos Retráctiles", "Barras Antivuelco", "Portaequipajes", "Accesorios de Caja"],
+    logoUrl: "/images/kraken-logo.png" as string | null,
+    imageUrl: "/images/kraken-hero.jpg" as string | null,
+    imagePlaceholder: "kraken-hero.jpg",
+    logoPh: "kraken-logo.png",
+    accent: "#38bdf8",
+    accentDim: "rgba(56,189,248,0.10)",
+    accentBorder: "rgba(56,189,248,0.28)",
+    website: "accesorioskraken.com.ar",
   },
 ];
 
-// ─── Animation Helpers ────────────────────────────────────────────────────────
-
-const fadeUp = {
-  hidden: { opacity: 0, y: 40 },
-  visible: { opacity: 1, y: 0, transition: { duration: 0.65, ease: "easeOut" as const } },
-};
-
-const fadeLeft = {
-  hidden: { opacity: 0, x: -50 },
-  visible: { opacity: 1, x: 0, transition: { duration: 0.7, ease: "easeOut" as const } },
-};
-
-const fadeRight = {
-  hidden: { opacity: 0, x: 50 },
-  visible: { opacity: 1, x: 0, transition: { duration: 0.7, ease: "easeOut" as const } },
-};
-
-const VIEWPORT = { once: true, margin: "-80px" };
+const VIEWPORT = { once: true, margin: "-60px" };
 
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 export default function MarcasPage() {
   return (
-    <main className="min-h-screen bg-[#0a0a0a] overflow-x-hidden">
+    <main className="min-h-screen bg-[#080808] overflow-x-hidden">
 
       {/* ── HERO ── */}
-      <section className="relative w-full min-h-[60vh] flex flex-col items-center justify-center text-center px-4 py-24 overflow-hidden border-b border-zinc-900">
-        {/* Carbon texture */}
-        <div
-          className="absolute inset-0 pointer-events-none opacity-[0.035]"
-          style={{
-            backgroundImage: `repeating-linear-gradient(45deg,#fff 0px,#fff 1px,transparent 1px,transparent 8px),repeating-linear-gradient(-45deg,#fff 0px,#fff 1px,transparent 1px,transparent 8px)`,
-          }}
-        />
-        {/* Yellow glow */}
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[300px] bg-yellow-500/8 rounded-full blur-[120px] pointer-events-none" />
+      <HeroSection />
 
-        <motion.div
-          variants={fadeUp}
-          initial="hidden"
-          animate="visible"
-          className="relative z-10 max-w-4xl"
-        >
-          <p className="text-yellow-500 text-xs font-bold uppercase tracking-[0.4em] mb-6">
-            — Partners Oficiales
-          </p>
-          <h1 className="text-6xl md:text-8xl lg:text-9xl font-black text-white uppercase tracking-tighter leading-none mb-6 drop-shadow-2xl">
-            Marcas
-            <br />
-            <span className="text-zinc-700">Oficiales</span>
-          </h1>
-          <p className="text-zinc-400 text-lg md:text-xl font-medium max-w-2xl mx-auto leading-relaxed">
-            Trabajamos exclusivamente con la élite del equipamiento Off-Road global.
-            Cada marca fue seleccionada por su desempeño comprobado en los terrenos más extremos del planeta.
-          </p>
-        </motion.div>
+      {/* ── BRANDS ── */}
+      {BRANDS.map((brand, i) => (
+        <BrandSection key={brand.id} brand={brand} index={i} />
+      ))}
 
-        {/* Scroll indicator */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 1, duration: 0.6 }}
-          className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2"
-        >
-          <span className="text-zinc-700 text-[9px] uppercase tracking-[0.3em] font-bold">Scroll</span>
-          <motion.div
-            animate={{ y: [0, 6, 0] }}
-            transition={{ repeat: Infinity, duration: 1.5, ease: "easeInOut" }}
-            className="w-px h-8 bg-gradient-to-b from-zinc-700 to-transparent"
-          />
-        </motion.div>
-      </section>
+      {/* ── CTA ── */}
+      <CTASection />
 
-      {/* ── BRAND SECTIONS (alternating) ── */}
-      {BRANDS.map((brand, i) => {
-        const isEven = i % 2 === 0;
-        return (
-          <BrandSection key={brand.name} brand={brand} imageLeft={isEven} index={i} />
-        );
-      })}
-
-      {/* ── CTA FOOTER ── */}
-      <section className="relative py-24 px-4 border-t border-zinc-900 bg-[#0d0d0d] overflow-hidden">
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(234,179,8,0.05)_0%,transparent_65%)] pointer-events-none" />
-        <motion.div
-          variants={fadeUp}
-          initial="hidden"
-          whileInView="visible"
-          viewport={VIEWPORT}
-          className="relative z-10 max-w-3xl mx-auto text-center"
-        >
-          <div className="w-12 h-12 bg-yellow-500 rounded-xl flex items-center justify-center mx-auto mb-6 shadow-[0_0_30px_rgba(234,179,8,0.4)]">
-            <Zap size={22} className="text-black" strokeWidth={3} />
-          </div>
-          <h2 className="text-4xl md:text-5xl font-black text-white uppercase tracking-tight mb-4">
-            ¿Listo para equiparte?
-          </h2>
-          <p className="text-zinc-500 text-base mb-8 leading-relaxed">
-            Explorá nuestro catálogo completo y consultá disponibilidad directamente por WhatsApp.
-          </p>
-          <Link
-            href="/catalogo"
-            className="inline-flex items-center gap-3 bg-yellow-500 hover:bg-yellow-400 text-black font-black uppercase tracking-widest text-sm px-8 py-4 rounded-xl transition-all shadow-[0_0_30px_rgba(234,179,8,0.3)] hover:shadow-[0_0_50px_rgba(234,179,8,0.5)] hover:-translate-y-0.5"
-          >
-            Ver Catálogo Completo
-            <ArrowRight size={18} strokeWidth={2.5} />
-          </Link>
-        </motion.div>
-      </section>
     </main>
+  );
+}
+
+// ─── Hero ─────────────────────────────────────────────────────────────────────
+
+function HeroSection() {
+  return (
+    <section className="relative w-full min-h-[70vh] flex flex-col items-center justify-center text-center px-4 py-28 overflow-hidden">
+
+      {/* Gradient bg */}
+      <div className="absolute inset-0 bg-gradient-to-b from-[#0f0900] via-[#080808] to-[#080808]" />
+
+      {/* Grid pattern */}
+      <div
+        className="absolute inset-0 opacity-[0.04]"
+        style={{
+          backgroundImage: `linear-gradient(rgba(255,255,255,0.5) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.5) 1px, transparent 1px)`,
+          backgroundSize: "60px 60px",
+        }}
+      />
+
+      {/* Big glow */}
+      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[400px] bg-yellow-500/10 rounded-full blur-[140px] pointer-events-none" />
+
+      <motion.div
+        initial={{ opacity: 0, y: 30 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.7, ease: "easeOut" }}
+        className="relative z-10 max-w-5xl"
+      >
+        <div className="inline-flex items-center gap-2 bg-yellow-500/10 border border-yellow-500/30 rounded-full px-4 py-1.5 mb-8">
+          <span className="w-1.5 h-1.5 rounded-full bg-yellow-500 animate-pulse" />
+          <span className="text-yellow-500 text-[10px] font-black uppercase tracking-[0.4em]">Partners Oficiales</span>
+        </div>
+
+        <h1 className="text-7xl md:text-[10rem] font-black text-white uppercase tracking-tighter leading-[0.85] mb-8">
+          Nuestras<br />
+          <span className="text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 via-yellow-500 to-amber-600">
+            Marcas
+          </span>
+        </h1>
+
+        <p className="text-zinc-400 text-lg md:text-xl max-w-2xl mx-auto leading-relaxed">
+          Trabajamos exclusivamente con marcas de equipamiento Off-Road que demostraron su valor en los terrenos más exigentes de Argentina y el mundo.
+        </p>
+
+        {/* Brand count chips */}
+        <div className="flex items-center justify-center gap-3 mt-10 flex-wrap">
+          {BRANDS.map((b) => (
+            <a
+              key={b.id}
+              href={`#${b.id}`}
+              className="flex items-center gap-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-full px-4 py-2 text-zinc-400 hover:text-white text-xs font-bold uppercase tracking-wider transition-all"
+            >
+              <span
+                className="w-2 h-2 rounded-full flex-shrink-0"
+                style={{ backgroundColor: b.accent }}
+              />
+              {b.name}
+            </a>
+          ))}
+        </div>
+      </motion.div>
+
+      {/* Scroll cue */}
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 1, duration: 0.6 }}
+        className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2"
+      >
+        <motion.div
+          animate={{ y: [0, 8, 0] }}
+          transition={{ repeat: Infinity, duration: 1.6, ease: "easeInOut" }}
+          className="w-px h-10 bg-gradient-to-b from-yellow-500/60 to-transparent"
+        />
+      </motion.div>
+    </section>
   );
 }
 
 // ─── Brand Section ────────────────────────────────────────────────────────────
 
-function BrandSection({
-  brand,
-  imageLeft,
-  index,
-}: {
-  brand: typeof BRANDS[0];
-  imageLeft: boolean;
-  index: number;
-}) {
-  const imgVariant = imageLeft ? fadeLeft : fadeRight;
-  const textVariant = imageLeft ? fadeRight : fadeLeft;
+function BrandSection({ brand, index }: { brand: typeof BRANDS[0]; index: number }) {
+  const ref = useRef<HTMLElement>(null);
+  const { scrollYProgress } = useScroll({ target: ref, offset: ["start end", "end start"] });
+  const imageY = useTransform(scrollYProgress, [0, 1], ["4%", "-4%"]);
+
+  const isEven = index % 2 === 0;
 
   return (
     <section
-      className={`relative py-20 md:py-28 border-b border-zinc-900 overflow-hidden ${
-        index % 2 === 0 ? "bg-[#0a0a0a]" : "bg-[#0d0d0d]"
-      }`}
+      id={brand.id}
+      ref={ref}
+      className="relative py-24 md:py-36 overflow-hidden border-t"
+      style={{ borderColor: brand.accentBorder }}
     >
-      {/* Subtle side glow */}
+      {/* Section bg */}
+      <div className="absolute inset-0 bg-[#090909]" />
+
+      {/* Accent glow */}
       <div
-        className={`absolute top-1/2 -translate-y-1/2 ${
-          imageLeft ? "left-0" : "right-0"
-        } w-72 h-72 bg-yellow-500/[0.04] rounded-full blur-3xl pointer-events-none`}
+        className={`absolute top-1/2 -translate-y-1/2 ${isEven ? "left-0" : "right-0"} w-[500px] h-[500px] rounded-full blur-[120px] pointer-events-none`}
+        style={{ backgroundColor: brand.accentDim }}
       />
 
+      {/* Index number bg */}
       <div
-        className={`relative z-10 max-w-7xl mx-auto px-4 sm:px-6 flex flex-col ${
-          imageLeft ? "lg:flex-row" : "lg:flex-row-reverse"
-        } items-center gap-12 lg:gap-20`}
+        className={`absolute top-8 ${isEven ? "right-8" : "left-8"} text-[160px] md:text-[220px] font-black leading-none select-none pointer-events-none opacity-[0.025] text-white`}
       >
-        {/* Image Block */}
+        0{index + 1}
+      </div>
+
+      <div className={`relative z-10 max-w-7xl mx-auto px-4 sm:px-6 flex flex-col ${isEven ? "lg:flex-row" : "lg:flex-row-reverse"} items-center gap-14 lg:gap-20`}>
+
+        {/* ── Image ── */}
         <motion.div
-          variants={imgVariant}
-          initial="hidden"
-          whileInView="visible"
+          initial={{ opacity: 0, x: isEven ? -60 : 60 }}
+          whileInView={{ opacity: 1, x: 0 }}
           viewport={VIEWPORT}
+          transition={{ duration: 0.7, ease: "easeOut" }}
           className="w-full lg:w-1/2 flex-shrink-0"
         >
-          <div className="relative rounded-3xl overflow-hidden border border-zinc-800 shadow-[0_0_80px_rgba(0,0,0,0.6)] aspect-[4/3] bg-[#111] flex items-center justify-center">
-            {/* Placeholder */}
-            <div className="flex flex-col items-center gap-4 p-10 text-center">
-              <div className="w-16 h-16 bg-zinc-800 rounded-2xl flex items-center justify-center">
-                <Shield size={28} className="text-zinc-600" strokeWidth={1.5} />
+          <div
+            className="relative rounded-2xl overflow-hidden aspect-[4/3] shadow-2xl"
+            style={{
+              border: `1px solid ${brand.accentBorder}`,
+              boxShadow: `0 0 80px ${brand.accentDim}, 0 0 0 1px ${brand.accentBorder}`,
+            }}
+          >
+            {brand.imageUrl ? (
+              <motion.div className="absolute inset-0" style={{ y: imageY }}>
+                <Image
+                  src={brand.imageUrl}
+                  alt={brand.name}
+                  fill
+                  className="object-cover scale-110"
+                  unoptimized
+                />
+              </motion.div>
+            ) : (
+              <div className="absolute inset-0 flex flex-col items-center justify-center bg-[#0f0f0f] gap-5">
+                {/* Placeholder accent lines */}
+                <div className="w-16 h-px" style={{ backgroundColor: brand.accent }} />
+                <p className="text-zinc-700 text-[10px] uppercase tracking-[0.3em] font-bold text-center px-8">
+                  Poné la imagen en<br />
+                  <span style={{ color: brand.accent }}>/public/images/{brand.imagePlaceholder}</span>
+                </p>
+                <div className="w-16 h-px" style={{ backgroundColor: brand.accent }} />
               </div>
-              <p className="text-zinc-600 text-xs uppercase tracking-widest font-bold">
-                [{brand.imagePlaceholder}]
-              </p>
+            )}
+
+            {/* Origin badge */}
+            <div className="absolute top-4 left-4 flex items-center gap-1.5 bg-black/70 backdrop-blur-sm border border-white/10 rounded-full px-3 py-1.5">
+              <MapPin size={10} style={{ color: brand.accent }} />
+              <span className="text-white text-[9px] font-bold uppercase tracking-widest">{brand.origin}</span>
             </div>
-            {/* Corner accent */}
-            <div className="absolute top-0 left-0 w-20 h-20 bg-gradient-to-br from-yellow-500/10 to-transparent pointer-events-none" />
-            <div className="absolute bottom-0 right-0 w-20 h-20 bg-gradient-to-tl from-yellow-500/5 to-transparent pointer-events-none" />
           </div>
         </motion.div>
 
-        {/* Text Block */}
+        {/* ── Text ── */}
         <motion.div
-          variants={textVariant}
-          initial="hidden"
-          whileInView="visible"
+          initial={{ opacity: 0, x: isEven ? 60 : -60 }}
+          whileInView={{ opacity: 1, x: 0 }}
           viewport={VIEWPORT}
-          className="w-full lg:w-1/2 flex flex-col gap-6"
+          transition={{ duration: 0.7, ease: "easeOut", delay: 0.1 }}
+          className="w-full lg:w-1/2 flex flex-col gap-7"
         >
-          {/* Logo placeholder */}
-          <div className="inline-flex items-center gap-3">
-            <div className="h-px flex-1 bg-zinc-800 max-w-[40px]" />
-            <div className="bg-zinc-900 border border-zinc-700 rounded-lg px-4 py-2">
-              <span className="text-zinc-500 text-[10px] uppercase tracking-widest font-bold">
-                [{brand.logoPlaceholder}]
+          {/* Logo or wordmark */}
+          {brand.logoUrl ? (
+            <div className="relative h-12 w-48">
+              <Image
+                src={brand.logoUrl}
+                alt={`${brand.name} logo`}
+                fill
+                className="object-contain object-left"
+                unoptimized
+              />
+            </div>
+          ) : (
+            <div
+              className="inline-flex items-center gap-2 rounded-lg px-3 py-1.5 w-fit"
+              style={{ backgroundColor: brand.accentDim, border: `1px solid ${brand.accentBorder}` }}
+            >
+              <span className="text-[10px] font-black uppercase tracking-[0.25em]" style={{ color: brand.accent }}>
+                {brand.logoPh}
               </span>
             </div>
-          </div>
+          )}
 
-          {/* Brand name */}
+          {/* Name */}
           <div>
-            <h2 className="text-5xl md:text-6xl font-black text-white uppercase tracking-tighter leading-none mb-2">
+            <h2 className="text-6xl md:text-7xl lg:text-8xl font-black text-white uppercase tracking-tighter leading-none">
               {brand.name}
             </h2>
-            <p className="text-yellow-500 text-sm font-bold uppercase tracking-widest">
+            <p className="mt-3 text-base font-bold uppercase tracking-widest" style={{ color: brand.accent }}>
               {brand.tagline}
+            </p>
+            <p className="text-zinc-500 text-sm uppercase tracking-widest font-medium">
+              {brand.sub}
             </p>
           </div>
 
+          {/* Divider */}
+          <div className="h-px w-16" style={{ backgroundColor: brand.accentBorder }} />
+
           {/* Description */}
-          <p className="text-zinc-400 text-base leading-relaxed">{brand.description}</p>
+          <p className="text-zinc-300 text-base leading-relaxed">{brand.description}</p>
 
           {/* Tags */}
           <div className="flex flex-wrap gap-2">
             {brand.tags.map((tag) => (
               <span
                 key={tag}
-                className="bg-zinc-900 border border-zinc-700 text-zinc-400 text-[10px] font-bold uppercase tracking-widest px-3 py-1.5 rounded-lg"
+                className="text-[10px] font-bold uppercase tracking-wider px-3 py-1.5 rounded-lg"
+                style={{
+                  backgroundColor: brand.accentDim,
+                  border: `1px solid ${brand.accentBorder}`,
+                  color: brand.accent,
+                }}
               >
                 {tag}
               </span>
             ))}
           </div>
 
-          {/* CTA */}
-          <Link
-            href={`/catalogo?marca=${brand.name.toLowerCase().replace(/\s+/g, "-")}`}
-            className="inline-flex items-center gap-2 text-yellow-500 hover:text-yellow-400 text-xs font-black uppercase tracking-widest transition-colors group w-fit"
-          >
-            Ver productos de {brand.name}
-            <ArrowRight
-              size={14}
-              strokeWidth={3}
-              className="group-hover:translate-x-1 transition-transform"
-            />
-          </Link>
+          {/* CTAs */}
+          <div className="flex items-center gap-4 flex-wrap pt-1">
+            <Link
+              href={`/catalogo?marca=${brand.name.toLowerCase().replace(/\s+/g, "-")}`}
+              className="inline-flex items-center gap-2 font-black uppercase tracking-widest text-xs px-6 py-3 rounded-xl transition-all"
+              style={{
+                backgroundColor: brand.accent,
+                color: "#000",
+              }}
+            >
+              Ver productos
+              <ArrowRight size={14} strokeWidth={3} />
+            </Link>
+            <a
+              href={`https://${brand.website}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1.5 text-zinc-500 hover:text-zinc-200 text-xs font-bold uppercase tracking-widest transition-colors"
+            >
+              {brand.website}
+              <ArrowUpRight size={13} strokeWidth={2.5} />
+            </a>
+          </div>
         </motion.div>
       </div>
+    </section>
+  );
+}
+
+// ─── CTA ──────────────────────────────────────────────────────────────────────
+
+function CTASection() {
+  return (
+    <section className="relative py-28 px-4 overflow-hidden border-t border-zinc-900">
+      <div className="absolute inset-0 bg-[#060606]" />
+      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(234,179,8,0.07)_0%,transparent_65%)] pointer-events-none" />
+
+      <motion.div
+        initial={{ opacity: 0, y: 30 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={VIEWPORT}
+        transition={{ duration: 0.65 }}
+        className="relative z-10 max-w-3xl mx-auto text-center"
+      >
+        <p className="text-yellow-500 text-[10px] font-black uppercase tracking-[0.4em] mb-6">
+          — Consultá disponibilidad
+        </p>
+        <h2 className="text-5xl md:text-7xl font-black text-white uppercase tracking-tighter leading-none mb-6">
+          ¿Listo para<br />
+          <span className="text-yellow-500">equiparte?</span>
+        </h2>
+        <p className="text-zinc-500 text-base mb-10 leading-relaxed max-w-xl mx-auto">
+          Explorá el catálogo completo o consultá directamente por WhatsApp. Te asesoramos con el equipamiento ideal para tu vehículo.
+        </p>
+        <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+          <Link
+            href="/catalogo"
+            className="inline-flex items-center gap-3 bg-yellow-500 hover:bg-yellow-400 text-black font-black uppercase tracking-widest text-sm px-8 py-4 rounded-xl transition-all shadow-[0_0_40px_rgba(234,179,8,0.3)] hover:shadow-[0_0_60px_rgba(234,179,8,0.5)] hover:-translate-y-0.5"
+          >
+            Ver Catálogo Completo
+            <ArrowRight size={18} strokeWidth={2.5} />
+          </Link>
+          <a
+            href="https://wa.me/5493816390854"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-3 bg-[#25d366]/10 hover:bg-[#25d366] border border-[#25d366]/30 hover:border-[#25d366] text-[#25d366] hover:text-white font-black uppercase tracking-widest text-sm px-8 py-4 rounded-xl transition-all duration-200"
+          >
+            Consultar por WhatsApp
+          </a>
+        </div>
+      </motion.div>
     </section>
   );
 }

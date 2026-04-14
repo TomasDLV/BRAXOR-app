@@ -6,6 +6,7 @@ import { createProduct } from "@/actions/productActions";
 import type { ActionState } from "@/types/actions";
 import { Plus, X, CheckCircle2, AlertCircle, ChevronDown } from "lucide-react";
 import ProductImageUploader from "@/components/admin/ProductImageUploader";
+import ProductGalleryUploader from "@/components/admin/ProductGalleryUploader";
 import VehicleMultiSelect from "@/components/admin/VehicleMultiSelect";
 
 type Vehicle = { id: string; make: string; model: string; yearStart: number | null; yearEnd: number | null };
@@ -45,12 +46,14 @@ export default function CreateProductForm({ categories, brands, vehicles, childr
   const [state, formAction] = useActionState<ActionState, FormData>(createProduct, null);
   const formRef = useRef<HTMLFormElement>(null);
   const [imageUrl, setImageUrl] = useState("");
+  const [galleryImages, setGalleryImages] = useState<string[]>([]);
   const [uploaderKey, setUploaderKey] = useState(0);
 
   useEffect(() => {
     if (state?.success) {
       formRef.current?.reset();
       setImageUrl("");
+      setGalleryImages([]);
       setUploaderKey((k) => k + 1);
       const t = setTimeout(() => setOpen(false), 1800);
       return () => clearTimeout(t);
@@ -181,6 +184,14 @@ export default function CreateProductForm({ categories, brands, vehicles, childr
             {/* Image Upload */}
             <ProductImageUploader key={uploaderKey} onUploadComplete={setImageUrl} />
             <input type="hidden" name="imageUrl" value={imageUrl} />
+
+            {/* Galería adicional */}
+            <ProductGalleryUploader
+              key={`gallery-${uploaderKey}`}
+              existingImages={galleryImages}
+              onChange={setGalleryImages}
+            />
+            <input type="hidden" name="images" value={JSON.stringify(galleryImages)} />
 
             {/* Vehículos compatibles */}
             <VehicleMultiSelect vehicles={vehicles} />

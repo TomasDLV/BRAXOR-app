@@ -1,7 +1,8 @@
 import { prisma } from "@/lib/prisma";
+import { Prisma } from "@prisma/client";
 import CreateProductForm from "@/components/admin/CreateProductForm";
 import DeleteProductButton from "@/components/admin/DeleteProductButton";
-import AdminSearchInput from "@/components/admin/AdminSearchInput";
+import AdminProductFilters from "@/components/admin/AdminProductFilters";
 import AdminPagination from "@/components/admin/AdminPagination";
 import { Package, ImageOff, Pencil } from "lucide-react";
 import Image from "next/image";
@@ -19,29 +20,88 @@ const formatARS = (n: number) =>
     maximumFractionDigits: 0,
   }).format(n);
 
+// ─── Sort map ─────────────────────────────────────────────────────────────────
+
+type OrderBy = Prisma.ProductOrderByWithRelationInput;
+
+function buildOrderBy(sort: string): OrderBy {
+  const map: Record<string, OrderBy> = {
+    "date-desc": { createdAt: "desc" },
+    "date-asc":  { createdAt: "asc" },
+    "price-desc":{ price: "desc" },
+    "price-asc": { price: "asc" },
+    "stock-desc":{ stock: "desc" },
+    "stock-asc": { stock: "asc" },
+    "name-asc":  { name: "asc" },
+    "name-desc": { name: "desc" },
+  };
+  return map[sort] ?? { createdAt: "desc" };
+}
+
+// ─── Where builder ────────────────────────────────────────────────────────────
+
+function buildWhere(params: {
+  q: string;
+  cat: string;
+  brand: string;
+  status: string;
+}): Prisma.ProductWhereInput {
+  const where: Prisma.ProductWhereInput = {};
+
+  // Full-text search
+  if (params.q) {
+    where.OR = [
+      { name: { contains: params.q, mode: "insensitive" } },
+      { sku:  { contains: params.q, mode: "insensitive" } },
+    ];
+  }
+
+  // Category
+  if (params.cat)   where.categoryId = params.cat;
+
+  // Brand
+  if (params.brand) where.brandId = params.brand;
+
+  // Status
+  switch (params.status) {
+    case "active":   where.isActive = true;  break;
+    case "inactive": where.isActive = false; break;
+    case "no-stock": where.stock = 0;        break;
+    case "featured": where.isFeatured = true; break;
+    case "new":      where.isNew = true;     break;
+  }
+
+  return where;
+}
+
+// ─── Page ─────────────────────────────────────────────────────────────────────
+
 export default async function AdminProductosPage({
   searchParams,
 }: {
-  searchParams: Promise<{ q?: string; page?: string }>;
+  searchParams: Promise<{
+    q?: string;
+    cat?: string;
+    brand?: string;
+    status?: string;
+    sort?: string;
+    page?: string;
+  }>;
 }) {
-  const { q = "", page = "1" } = await searchParams;
+  const { q = "", cat = "", brand = "", status = "", sort = "", page = "1" } =
+    await searchParams;
+
   const currentPage = Math.max(1, parseInt(page, 10) || 1);
   const skip = (currentPage - 1) * PAGE_SIZE;
 
-  const where = q
-    ? {
-        OR: [
-          { name: { contains: q, mode: "insensitive" as const } },
-          { sku: { contains: q, mode: "insensitive" as const } },
-        ],
-      }
-    : {};
+  const where = buildWhere({ q, cat, brand, status });
+  const orderBy = buildOrderBy(sort);
 
   const [products, total, categories, brands, vehicles] = await Promise.all([
     prisma.product.findMany({
       where,
       include: { category: true, brand: true },
-      orderBy: { createdAt: "desc" },
+      orderBy,
       skip,
       take: PAGE_SIZE,
     }),
@@ -51,10 +111,12 @@ export default async function AdminProductosPage({
     prisma.vehicle.findMany({ orderBy: [{ make: "asc" }, { model: "asc" }] }),
   ]);
 
+  const hasFilters = !!(q || cat || brand || status);
+
   return (
     <main className="flex-1 p-6 md:p-10 overflow-auto">
       {/* Header */}
-      <div className="mb-8">
+      <div className="mb-6">
         <p className="text-yellow-500 text-[10px] font-bold uppercase tracking-[0.25em] mb-1">
           Gestión de inventario
         </p>
@@ -62,22 +124,29 @@ export default async function AdminProductosPage({
           Productos
         </h1>
         <p className="text-zinc-500 text-sm mt-1">
-          {total} producto{total !== 1 ? "s" : ""} en catálogo.
+          {total} producto{total !== 1 ? "s" : ""}{hasFilters ? " (filtrados)" : " en catálogo"}.
         </p>
       </div>
 
-      {/* Create form + Search */}
-      <div className="mb-8">
-        <CreateProductForm categories={categories} brands={brands} vehicles={vehicles}>
-          <AdminSearchInput placeholder="Buscar por nombre o SKU..." />
-        </CreateProductForm>
+      {/* Create form */}
+      <div className="mb-6">
+        <CreateProductForm categories={categories} brands={brands} vehicles={vehicles} />
+      </div>
+
+      {/* Filters bar */}
+      <div className="bg-[#111] border border-zinc-800 rounded-2xl p-4 mb-4">
+        <AdminProductFilters
+          categories={categories}
+          brands={brands}
+          total={total}
+        />
       </div>
 
       {/* Table */}
       <div className="bg-[#111] border border-zinc-800 rounded-2xl overflow-hidden">
         <div className="flex items-center justify-between px-6 py-4 border-b border-zinc-800">
           <h2 className="text-white font-black uppercase tracking-wide text-sm">
-            Inventario completo
+            Inventario
           </h2>
           <span className="text-zinc-600 text-xs font-mono">{total} registros</span>
         </div>
@@ -86,10 +155,15 @@ export default async function AdminProductosPage({
           <div className="flex flex-col items-center justify-center py-24 gap-3 text-center">
             <Package size={36} className="text-zinc-800" />
             <p className="text-zinc-600 text-sm font-semibold uppercase tracking-widest">
-              {q ? `Sin resultados para "${q}".` : "No hay productos todavía."}
+              {hasFilters ? "Sin resultados para los filtros aplicados." : "No hay productos todavía."}
             </p>
-            {!q && (
-              <p className="text-zinc-700 text-xs">Usá el formulario de arriba para agregar el primero.</p>
+            {hasFilters && (
+              <Link
+                href="/admin/productos"
+                className="text-yellow-500 hover:text-yellow-400 text-xs font-black uppercase tracking-widest transition-colors"
+              >
+                Limpiar filtros →
+              </Link>
             )}
           </div>
         ) : (
@@ -114,17 +188,15 @@ export default async function AdminProductosPage({
                   <tr key={p.id} className="hover:bg-zinc-900/50 transition-colors group">
                     {/* Thumbnail */}
                     <td className="pl-6 pr-2 py-3">
-                      <div className="w-10 h-10 rounded-lg bg-[#0d0d0d] border border-zinc-800 flex items-center justify-center overflow-hidden flex-shrink-0">
+                      <div className="w-10 h-10 rounded-lg bg-[#0d0d0d] border border-zinc-800 flex items-center justify-center overflow-hidden flex-shrink-0 relative">
                         {p.imageUrl ? (
-                          <div className="relative w-full h-full">
-                            <Image
-                              src={p.imageUrl}
-                              alt={p.name}
-                              fill
-                              className="object-contain p-1"
-                              unoptimized
-                            />
-                          </div>
+                          <Image
+                            src={p.imageUrl}
+                            alt={p.name}
+                            fill
+                            className="object-contain p-1"
+                            unoptimized
+                          />
                         ) : (
                           <ImageOff size={14} className="text-zinc-700" />
                         )}
@@ -142,20 +214,28 @@ export default async function AdminProductosPage({
                     </td>
 
                     {/* Category */}
-                    <td className="px-4 py-3 text-zinc-400 whitespace-nowrap">{p.category.name}</td>
+                    <td className="px-4 py-3 whitespace-nowrap">
+                      <span className={`text-xs font-medium ${p.category.name === "Por Categorizar" ? "text-orange-400" : "text-zinc-400"}`}>
+                        {p.category.name}
+                      </span>
+                    </td>
 
                     {/* Brand */}
-                    <td className="px-4 py-3 text-zinc-400 whitespace-nowrap">{p.brand.name}</td>
+                    <td className="px-4 py-3 text-zinc-400 whitespace-nowrap text-xs">{p.brand.name}</td>
 
                     {/* Price */}
-                    <td className="px-4 py-3 text-yellow-500 font-black whitespace-nowrap">
-                      {formatARS(Number(p.price))}
+                    <td className="px-4 py-3 whitespace-nowrap">
+                      {p.price ? (
+                        <span className="text-yellow-500 font-black">{formatARS(Number(p.price))}</span>
+                      ) : (
+                        <span className="text-zinc-700 text-xs">—</span>
+                      )}
                     </td>
 
                     {/* Stock */}
                     <td className="px-4 py-3 whitespace-nowrap">
                       <span
-                        className={`font-bold tabular-nums ${
+                        className={`font-bold tabular-nums text-sm ${
                           p.stock === 0
                             ? "text-red-400"
                             : p.stock <= 3
@@ -170,6 +250,11 @@ export default async function AdminProductosPage({
                     {/* Badges */}
                     <td className="px-4 py-3">
                       <div className="flex gap-1.5 flex-wrap">
+                        {!p.isActive && (
+                          <span className="bg-zinc-800 text-zinc-500 border border-zinc-700 text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded-md whitespace-nowrap">
+                            Borrador
+                          </span>
+                        )}
                         {p.isNew && (
                           <span className="bg-yellow-500/15 text-yellow-500 border border-yellow-500/25 text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded-md whitespace-nowrap">
                             Nuevo

@@ -1,15 +1,15 @@
 import { prisma } from "@/lib/prisma";
 import HeroSection from "@/components/home/HeroSection";
-import TallerSection from "@/components/home/TallerSection";
 import CategorySection from "@/components/home/CategorySection";
 import BrandsStrip from "@/components/home/BrandsStrip";
+import FeaturedCarousel from "@/components/home/FeaturedCarousel";
 import LocationSection from "@/components/home/LocationSection";
 import FinalCTA from "@/components/home/FinalCTA";
 
 export const dynamic = "force-dynamic";
 
 export default async function Home() {
-  const [categories, brands] = await Promise.all([
+  const [categories, brands, featuredProducts] = await Promise.all([
     prisma.category.findMany({
       where: { showInHome: true },
       orderBy: { name: "asc" },
@@ -17,6 +17,12 @@ export default async function Home() {
     prisma.partBrand.findMany({
       where: { showInHome: true },
       orderBy: { name: "asc" },
+    }),
+    prisma.product.findMany({
+      where: { isFeatured: true, isActive: true },
+      include: { brand: true, category: true },
+      orderBy: { createdAt: "desc" },
+      take: 12,
     }),
   ]);
 
@@ -31,6 +37,17 @@ export default async function Home() {
     id: b.id,
     name: b.name,
     logoUrl: b.logoUrl,
+  }));
+
+  const serializedFeatured = featuredProducts.map((p) => ({
+    id: p.id,
+    name: p.name,
+    imageUrl: p.imageUrl,
+    price: p.price ? Number(p.price) : null,
+    showPrice: p.showPrice,
+    isNew: p.isNew,
+    brand: { name: p.brand.name },
+    category: { name: p.category.name },
   }));
 
   return (
@@ -52,8 +69,8 @@ export default async function Home() {
         <HeroSection />
       </div>
 
-      {/* TallerSection excluded from snap — internal sticky scrolltelling */}
-      <TallerSection />
+      {/* Destacados — after hero, before chapters */}
+      <FeaturedCarousel products={serializedFeatured} />
 
       {/* id="categories-section" → SnapController target */}
       <div id="categories-section">

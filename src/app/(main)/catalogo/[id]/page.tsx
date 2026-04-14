@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft, Zap, Star, MessageCircle, Tag, Car } from "lucide-react";
 import ProductCarousel from "@/components/catalogo/ProductCarousel";
+import AddToCartButton from "@/components/cart/AddToCartButton";
 
 const WA_NUMBER = "5493816000000";
 
@@ -191,16 +192,30 @@ export default async function ProductDetailPage({
               </span>
             </div>
 
-            {/* CTA WhatsApp */}
-            <a
-              href={waHref}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="group flex items-center justify-center gap-3 bg-yellow-500 hover:bg-yellow-400 text-black font-black uppercase tracking-widest text-base px-8 py-5 rounded-2xl transition-all shadow-[0_0_40px_rgba(234,179,8,0.3)] hover:shadow-[0_0_60px_rgba(234,179,8,0.5)] hover:-translate-y-0.5 active:translate-y-0"
-            >
-              <MessageCircle size={22} strokeWidth={2.5} className="group-hover:scale-110 transition-transform" />
-              Consultar por WhatsApp
-            </a>
+            {/* CTAs */}
+            <div className="flex flex-col gap-3">
+              <AddToCartButton
+                product={{
+                  id: product.id,
+                  name: product.name,
+                  brand: product.brand.name,
+                  category: product.category.name,
+                  price: product.price ? Number(product.price) : null,
+                  showPrice: product.showPrice,
+                  imageUrl: product.imageUrl,
+                  sku: product.sku,
+                }}
+              />
+              <a
+                href={waHref}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="group flex items-center justify-center gap-3 bg-yellow-500 hover:bg-yellow-400 text-black font-black uppercase tracking-widest text-base px-8 py-5 rounded-2xl transition-all shadow-[0_0_40px_rgba(234,179,8,0.3)] hover:shadow-[0_0_60px_rgba(234,179,8,0.5)] hover:-translate-y-0.5 active:translate-y-0"
+              >
+                <MessageCircle size={22} strokeWidth={2.5} className="group-hover:scale-110 transition-transform" />
+                Consultar directamente
+              </a>
+            </div>
 
             {/* Back link mobile */}
             <Link
