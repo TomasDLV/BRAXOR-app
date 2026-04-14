@@ -5,7 +5,7 @@ import { ArrowLeft, Zap, Star, MessageCircle, Tag, Car } from "lucide-react";
 import ProductCarousel from "@/components/catalogo/ProductCarousel";
 import AddToCartButton from "@/components/cart/AddToCartButton";
 
-const WA_NUMBER = "5493816000000";
+const WA_NUMBER = "5493816390854";
 
 const formatARS = (n: number) =>
   new Intl.NumberFormat("es-AR", {

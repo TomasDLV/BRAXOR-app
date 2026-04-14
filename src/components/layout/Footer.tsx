@@ -108,8 +108,8 @@ export default async function Footer() {
               <li className="flex items-start gap-3">
                 <MapPin size={14} className="text-yellow-500 flex-shrink-0 mt-0.5" strokeWidth={2} />
                 <div>
-                  <p className="text-zinc-300 text-sm font-medium">Yerba Buena</p>
-                  <p className="text-zinc-600 text-xs">Tucumán, Argentina</p>
+                  <p className="text-zinc-300 text-sm font-medium">Camino de la Virgen 400</p>
+                  <p className="text-zinc-600 text-xs">Complejo Uork 3, Local 3 · Yerba Buena, Tucumán</p>
                 </div>
               </li>
               <li className="flex items-start gap-3">
@@ -182,7 +182,7 @@ export default async function Footer() {
             © {new Date().getFullYear()} Bräxor Off-Road. Todos los derechos reservados.
           </p>
           <p className="text-zinc-800 text-[10px] uppercase tracking-widest">
-            Yerba Buena · Tucumán · Argentina
+            Camino de la Virgen 400 · Complejo Uork 3, Local 3 · Yerba Buena
           </p>
         </div>
       </div>

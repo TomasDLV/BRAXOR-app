@@ -12,7 +12,7 @@ import {
   Phone,
 } from "lucide-react";
 
-const WA_NUMBER = "5493816000000"; // ← Reemplazar con número real
+const WA_NUMBER = "5493816390854";
 const WA_CONTACT_TEXT = encodeURIComponent("Hola, me gustaría hacer una consulta sobre equipamiento Off-Road.");
 
 const fadeUp = {
@@ -99,7 +99,8 @@ export default function ContactoPage() {
                 <InfoRow icon={<MapPin size={18} className="text-yellow-500 flex-shrink-0 mt-0.5" strokeWidth={2} />}>
                   <div>
                     <p className="text-white font-bold text-sm">Dirección</p>
-                    <p className="text-zinc-400 text-sm mt-0.5">Yerba Buena, Tucumán, Argentina</p>
+                    <p className="text-zinc-400 text-sm mt-0.5">Camino de la Virgen 400</p>
+                    <p className="text-zinc-500 text-xs">Complejo Uork 3, Local 3 · Yerba Buena, Tucumán</p>
                   </div>
                 </InfoRow>
 

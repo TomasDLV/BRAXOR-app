@@ -56,7 +56,7 @@ export default function FinalCTA() {
               </motion.button>
             </Link>
             <a
-              href="https://wa.me/5493816000000"
+              href="https://wa.me/5493816390854"
               target="_blank"
               rel="noopener noreferrer"
             >

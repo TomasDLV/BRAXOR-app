@@ -72,12 +72,12 @@ export default function LocationSection() {
               <div className="flex items-center gap-2 bg-black/70 backdrop-blur-sm border border-white/10 rounded-xl px-4 py-2.5">
                 <MapPin size={13} className="text-yellow-500 flex-shrink-0" strokeWidth={2} />
                 <div>
-                  <p className="text-white text-xs font-bold leading-tight">Yerba Buena</p>
-                  <p className="text-zinc-400 text-[10px]">Tucumán, Argentina</p>
+                  <p className="text-white text-xs font-bold leading-tight">Camino de la Virgen 400</p>
+                  <p className="text-zinc-400 text-[10px]">Complejo Uork 3, Local 3 · Yerba Buena</p>
                 </div>
               </div>
               <a
-                href="https://maps.google.com/?q=Yerba+Buena+Tucuman+Argentina"
+                href="https://maps.app.goo.gl/oMZ2oeFgoBfEjvb57"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="flex items-center gap-1.5 bg-yellow-500 hover:bg-yellow-400 text-black text-[10px] font-black uppercase tracking-widest px-3 py-2.5 rounded-xl transition-all"
@@ -122,8 +122,9 @@ export default function LocationSection() {
                 <MapPin size={14} className="text-yellow-500" strokeWidth={2} />
                 <p className="text-zinc-400 text-xs font-black uppercase tracking-widest">Ubicación</p>
               </div>
-              <p className="text-white text-base font-bold mb-1">Yerba Buena</p>
-              <p className="text-zinc-500 text-sm">Tucumán, Argentina</p>
+              <p className="text-white text-base font-bold mb-1">Camino de la Virgen 400</p>
+              <p className="text-zinc-400 text-sm">Complejo Uork 3, Local 3</p>
+              <p className="text-zinc-500 text-xs mt-0.5">Yerba Buena, Tucumán</p>
             </div>
 
             {/* CTAs */}
