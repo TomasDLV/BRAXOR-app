@@ -22,13 +22,23 @@ export default function HeroSection() {
     >
       {/* Parallax background */}
       <motion.div style={{ y: imgY }} className="absolute inset-0 scale-110">
+        {/* Mobile image (< md) */}
+        <Image
+          src="/images/FondoPortada-mobile.png"
+          alt="Showroom Bräxor Off-Road"
+          fill
+          sizes="100vw"
+          priority
+          className="object-cover object-center block md:hidden"
+        />
+        {/* Desktop image (≥ md) */}
         <Image
           src="/images/FondoPortada.png"
           alt="Showroom Bräxor Off-Road"
           fill
           sizes="100vw"
           priority
-          className="object-cover object-center"
+          className="object-cover object-center hidden md:block"
         />
       </motion.div>
 
