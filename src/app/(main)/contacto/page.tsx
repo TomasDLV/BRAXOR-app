@@ -126,11 +126,18 @@ export default function ContactoPage() {
                   </div>
                 </InfoRow>
 
-                {/* Phone placeholder */}
+                {/* Phone */}
                 <InfoRow icon={<Phone size={18} className="text-yellow-500 flex-shrink-0 mt-0.5" strokeWidth={2} />}>
                   <div>
                     <p className="text-white font-bold text-sm">Teléfono / WhatsApp</p>
-                    <p className="text-zinc-400 text-sm mt-0.5">+54 9 381 600-0000</p>
+                    <a
+                      href={`https://wa.me/${WA_NUMBER}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-zinc-400 hover:text-yellow-500 text-sm mt-0.5 transition-colors"
+                    >
+                      +54 9 381 639-0854
+                    </a>
                   </div>
                 </InfoRow>
               </div>
@@ -165,14 +172,24 @@ export default function ContactoPage() {
               className="relative rounded-2xl overflow-hidden border border-zinc-800 aspect-[4/3]"
             >
               <iframe
-                src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d14244.86366951376!2d-65.32745361328126!3d-26.801252751033335!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x942242ec5f17f463%3A0x4d47d3ffc9f975af!2sRotonda%20Horco%20Molle!5e0!3m2!1ses!2sar!4v1773501182925!5m2!1ses!2sar"
+                src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3561.5!2d-65.3138746!3d-26.8326991!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x94224300553cf085%3A0x8a404de77ea4fb87!2sUork+3+Camino+de+Sirga!5e0!3m2!1ses!2sar!4v1773501182925!5m2!1ses!2sar"
                 className="absolute inset-0 w-full h-full"
-                style={{ border: 0, /* filter: "grayscale(1) invert(0.9) contrast(0.85)" */ }}
+                style={{ border: 0 }}
                 allowFullScreen
                 loading="lazy"
                 referrerPolicy="no-referrer-when-downgrade"
                 title="Ubicación Bräxor Off-Road"
               />
+              {/* Overlay link to open in maps */}
+              <a
+                href="https://maps.app.goo.gl/oMZ2oeFgoBfEjvb57"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="absolute bottom-3 right-3 flex items-center gap-1.5 bg-black/80 hover:bg-yellow-500 border border-white/10 hover:border-yellow-500 text-white hover:text-black text-[10px] font-black uppercase tracking-widest px-3 py-2 rounded-lg transition-all backdrop-blur-sm"
+              >
+                <MapPin size={10} strokeWidth={3} />
+                Ver en Maps
+              </a>
             </motion.div>
           </div>
 
