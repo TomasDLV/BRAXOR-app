@@ -55,8 +55,7 @@ export default function ProductCarousel({ images, productName, isNew, isFeatured
                 fill
                 className="object-cover"
                 priority={active === 0}
-                unoptimized
-              />
+                              />
             </motion.div>
           </AnimatePresence>
         ) : (

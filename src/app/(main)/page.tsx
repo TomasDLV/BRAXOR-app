@@ -6,7 +6,7 @@ import FeaturedCarousel from "@/components/home/FeaturedCarousel";
 import LocationSection from "@/components/home/LocationSection";
 import FinalCTA from "@/components/home/FinalCTA";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 60; // ISR: regenera en background cada 60s
 
 export default async function Home() {
   const [categories, brands, featuredProducts] = await Promise.all([

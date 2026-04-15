@@ -1,8 +1,25 @@
+import { unstable_cache } from "next/cache";
 import { prisma } from "@/lib/prisma";
 import type { Prisma } from "@prisma/client";
 import CatalogoClient from "@/components/catalogo/CatalogoClient";
 
 export const dynamic = "force-dynamic";
+
+// ─── Cached static data (categorías, marcas, vehículos) ──────────────────────
+// Se regeneran cada 60s en background — no dependen de searchParams
+
+const getCachedMeta = unstable_cache(
+  async () => {
+    const [categories, brands, vehicles] = await Promise.all([
+      prisma.category.findMany({ orderBy: { name: "asc" } }),
+      prisma.partBrand.findMany({ orderBy: { name: "asc" } }),
+      prisma.vehicle.findMany({ orderBy: [{ make: "asc" }, { model: "asc" }] }),
+    ]);
+    return { categories, brands, vehicles };
+  },
+  ["catalogo-meta"],
+  { revalidate: 60, tags: ["catalogo-meta"] }
+);
 
 export default async function CatalogoPage({
   searchParams,
@@ -44,8 +61,8 @@ export default async function CatalogoPage({
     }
   }
 
-  // ── Main product query ────────────────────────────────────────────────────
-  const [products, categories, brands, vehicles] = await Promise.all([
+  // ── Product query (dinámico — depende de filtros) + meta cacheada ──────────
+  const [products, { categories, brands, vehicles }] = await Promise.all([
     prisma.product.findMany({
       where: {
         isActive: true,
@@ -62,9 +79,7 @@ export default async function CatalogoPage({
       include: { category: true, brand: true, vehicles: true },
       orderBy: { createdAt: "desc" },
     }),
-    prisma.category.findMany({ orderBy: { name: "asc" } }),
-    prisma.partBrand.findMany({ orderBy: { name: "asc" } }),
-    prisma.vehicle.findMany({ orderBy: [{ make: "asc" }, { model: "asc" }] }),
+    getCachedMeta(),
   ]);
 
   return (

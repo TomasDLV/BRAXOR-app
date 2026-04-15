@@ -222,7 +222,7 @@ function BrandSection({ brand, index }: { brand: typeof BRANDS[0]; index: number
                   alt={brand.name}
                   fill
                   className="object-cover scale-110"
-                  unoptimized
+
                 />
               </motion.div>
             ) : (

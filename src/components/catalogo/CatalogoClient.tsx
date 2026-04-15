@@ -427,8 +427,7 @@ export default function CatalogoClient({
                     width={28}
                     height={28}
                     className="object-contain p-1"
-                    unoptimized
-                  />
+                                      />
                 ) : (
                   <span className="text-zinc-500 text-[9px] font-black">
                     {cat.name[0]}
@@ -622,8 +621,7 @@ export default function CatalogoClient({
                           width={64}
                           height={64}
                           className="object-contain p-3"
-                          unoptimized
-                        />
+                                                  />
                       ) : (
                         <span
                           className={`text-xs font-black uppercase tracking-tight ${
@@ -801,8 +799,7 @@ function ProductCard({ product, index }: { product: CatalogProduct; index: numbe
                 alt={product.name}
                 fill
                 className="object-cover transition-transform duration-500 group-hover:scale-105"
-                unoptimized
-              />
+                              />
             ) : (
               <div className="flex items-center justify-center h-full opacity-20">
                 <ImageOff size={32} className="text-zinc-400" />
