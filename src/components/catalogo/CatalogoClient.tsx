@@ -60,12 +60,16 @@ const formatARS = (n: number) =>
 function VehicleFilter({
   vehicles,
   activeVehicle,
+  activeYear,
   onSelect,
+  onYearChange,
   variant = "desktop",
 }: {
   vehicles: CatalogVehicle[];
   activeVehicle: string | null;
+  activeYear: number | null;
   onSelect: (id: string | null) => void;
+  onYearChange: (year: number | null) => void;
   variant?: "desktop" | "mobile";
 }) {
   const [openMakes, setOpenMakes] = useState<Record<string, boolean>>({});
@@ -88,6 +92,11 @@ function VehicleFilter({
 
   const toggleMake = (make: string) =>
     setOpenMakes((prev) => ({ ...prev, [make]: !prev[make] }));
+
+  const activeVehicleData = useMemo(
+    () => vehicles.find((v) => v.id === activeVehicle) ?? null,
+    [vehicles, activeVehicle]
+  );
 
   if (vehicles.length === 0) return null;
 
@@ -113,7 +122,7 @@ function VehicleFilter({
       )}
 
       <button
-        onClick={() => onSelect(null)}
+        onClick={() => { onSelect(null); onYearChange(null); }}
         className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-bold transition-all cursor-pointer text-left ${
           isMobile ? "px-4" : ""
         } ${
@@ -157,7 +166,7 @@ function VehicleFilter({
                     return (
                       <button
                         key={v.id}
-                        onClick={() => onSelect(isActive ? null : v.id)}
+                        onClick={() => { onSelect(isActive ? null : v.id); onYearChange(null); }}
                         className={`flex items-center justify-between px-2 py-2 rounded-lg text-xs font-semibold transition-colors cursor-pointer text-left ${
                           isActive
                             ? "bg-white/10 text-yellow-400"
@@ -179,6 +188,43 @@ function VehicleFilter({
           );
         })}
       </div>
+
+      {/* Year refiner — shown when a vehicle is selected */}
+      {activeVehicleData && (
+        <div className="mt-1 flex flex-col gap-1.5">
+          <p className="text-zinc-600 text-[10px] font-bold uppercase tracking-widest">
+            Filtrar por año
+          </p>
+          <div className="relative">
+            <input
+              type="number"
+              min={activeVehicleData.yearStart ?? 1990}
+              max={activeVehicleData.yearEnd ?? new Date().getFullYear()}
+              placeholder={`${activeVehicleData.yearStart ?? "?"}–${activeVehicleData.yearEnd ?? "hoy"}`}
+              value={activeYear ?? ""}
+              onChange={(e) => {
+                const val = e.target.value;
+                onYearChange(val ? parseInt(val, 10) : null);
+              }}
+              className="w-full bg-white/5 border border-white/10 focus:border-yellow-500/40 text-white text-xs px-3 py-2 rounded-xl focus:outline-none placeholder-zinc-700 transition-colors [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+            />
+            {activeYear && (
+              <button
+                onClick={() => onYearChange(null)}
+                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-zinc-600 hover:text-white transition-colors cursor-pointer"
+              >
+                <X size={11} strokeWidth={2.5} />
+              </button>
+            )}
+          </div>
+          {activeYear && (
+            <p className="text-[10px] text-zinc-700">
+              Mostrando compatibles con año{" "}
+              <span className="text-yellow-500 font-bold">{activeYear}</span>
+            </p>
+          )}
+        </div>
+      )}
     </div>
   );
 }
@@ -202,6 +248,7 @@ export default function CatalogoClient({
   const [activeCategory, setActiveCategory] = useState(initialCategory);
   const [activeBrand, setActiveBrand] = useState<string | null>(null);
   const [activeVehicle, setActiveVehicle] = useState<string | null>(null);
+  const [activeYear, setActiveYear] = useState<number | null>(null);
   const [filterNew, setFilterNew] = useState(false);
   const [filterFeatured, setFilterFeatured] = useState(false);
   const [bottomSheetOpen, setBottomSheetOpen] = useState(false);
@@ -211,7 +258,19 @@ export default function CatalogoClient({
     return products.filter((p) => {
       const matchCat = activeCategory === "Todos" || p.category.name === activeCategory;
       const matchBrand = !activeBrand || p.brand.name === activeBrand;
-      const matchVehicle = !activeVehicle || p.vehicleIds.includes(activeVehicle);
+      const matchVehicle = (() => {
+        if (!activeVehicle) return true;
+        if (!p.vehicleIds.includes(activeVehicle)) return false;
+        if (activeYear) {
+          const v = vehicles.find((v) => v.id === activeVehicle);
+          if (v) {
+            const afterStart = !v.yearStart || v.yearStart <= activeYear;
+            const beforeEnd = !v.yearEnd || v.yearEnd >= activeYear;
+            return afterStart && beforeEnd;
+          }
+        }
+        return true;
+      })();
       const matchNew = !filterNew || p.isNew;
       const matchFeatured = !filterFeatured || p.isFeatured;
       const matchQuery =
@@ -221,12 +280,13 @@ export default function CatalogoClient({
         p.sku.toLowerCase().includes(q);
       return matchCat && matchBrand && matchVehicle && matchNew && matchFeatured && matchQuery;
     });
-  }, [query, activeCategory, activeBrand, activeVehicle, filterNew, filterFeatured, products]);
+  }, [query, activeCategory, activeBrand, activeVehicle, activeYear, filterNew, filterFeatured, products, vehicles]);
 
   const activeFiltersCount = [
     activeCategory !== "Todos",
     activeBrand !== null,
     activeVehicle !== null,
+    activeYear !== null,
     filterNew,
     filterFeatured,
   ].filter(Boolean).length;
@@ -236,6 +296,7 @@ export default function CatalogoClient({
     setActiveCategory("Todos");
     setActiveBrand(null);
     setActiveVehicle(null);
+    setActiveYear(null);
     setFilterNew(false);
     setFilterFeatured(false);
   }
@@ -410,7 +471,9 @@ export default function CatalogoClient({
                 <VehicleFilter
                   vehicles={vehicles}
                   activeVehicle={activeVehicle}
+                  activeYear={activeYear}
                   onSelect={setActiveVehicle}
+                  onYearChange={setActiveYear}
                   variant="desktop"
                 />
               </>
@@ -573,7 +636,9 @@ export default function CatalogoClient({
                     <VehicleFilter
                       vehicles={vehicles}
                       activeVehicle={activeVehicle}
-                      onSelect={(id) => { setActiveVehicle(id); }}
+                      activeYear={activeYear}
+                      onSelect={setActiveVehicle}
+                      onYearChange={setActiveYear}
                       variant="mobile"
                     />
                   </div>

@@ -5,6 +5,58 @@ import { prisma } from "@/lib/prisma";
 
 import type { ActionState } from "@/types/actions";
 
+// ─── Vehicle helpers ──────────────────────────────────────────────────────────
+
+interface ParsedVehicle {
+  make: string;
+  model: string;
+  yearStart: number;
+  yearEnd: number;
+}
+
+function parseVehicleString(text: string): ParsedVehicle | null {
+  const m = text.trim().match(/^(\S+)\s+(.+?)\s+(\d{4})-(\d{4})$/i);
+  if (!m) return null;
+  const [, make, model, ys, ye] = m;
+  const yearStart = parseInt(ys, 10);
+  const yearEnd = parseInt(ye, 10);
+  if (yearEnd < yearStart || yearStart < 1900 || yearEnd > 2100) return null;
+  return { make, model: model.trim(), yearStart, yearEnd };
+}
+
+/** Upserts new vehicle strings and returns all resolved IDs. */
+async function resolveVehicleIds(
+  existingIds: string[],
+  newStrings: string[]
+): Promise<string[]> {
+  if (newStrings.length === 0) return existingIds;
+
+  const upserted = await Promise.all(
+    newStrings.map(async (raw) => {
+      const parsed = parseVehicleString(raw);
+      if (!parsed) return null;
+      const vehicle = await prisma.vehicle.upsert({
+        where: { make_model: { make: parsed.make, model: parsed.model } },
+        create: {
+          make: parsed.make,
+          model: parsed.model,
+          yearStart: parsed.yearStart,
+          yearEnd: parsed.yearEnd,
+        },
+        update: {
+          yearStart: parsed.yearStart,
+          yearEnd: parsed.yearEnd,
+        },
+        select: { id: true },
+      });
+      return vehicle.id;
+    })
+  );
+
+  const newIds = upserted.filter((id): id is string => id !== null);
+  return [...new Set([...existingIds, ...newIds])];
+}
+
 // ─── TOGGLES ──────────────────────────────────────────────────────────────────
 
 export async function toggleProductActive(formData: FormData): Promise<void> {
@@ -59,9 +111,12 @@ export async function createProduct(
   if (Object.keys(errors).length > 0)
     return { success: false, message: "Corregí los errores del formulario.", errors };
 
-  const vehicleIds = formData.getAll("vehicleId") as string[];
+  const rawVehicleIds = formData.getAll("vehicleId") as string[];
+  const newVehicleStrings = formData.getAll("vehicleNew") as string[];
   const parsedPrice = raw.price?.trim() ? Number(raw.price) : null;
   const parsedImages: string[] = raw.images ? JSON.parse(raw.images) : [];
+
+  const vehicleIds = await resolveVehicleIds(rawVehicleIds, newVehicleStrings);
 
   try {
     await prisma.product.create({
@@ -132,9 +187,12 @@ export async function updateProduct(
   if (Object.keys(errors).length > 0)
     return { success: false, message: "Corregí los errores del formulario.", errors };
 
-  const vehicleIds = formData.getAll("vehicleId") as string[];
+  const rawVehicleIds = formData.getAll("vehicleId") as string[];
+  const newVehicleStrings = formData.getAll("vehicleNew") as string[];
   const parsedPrice = raw.price?.trim() ? Number(raw.price) : null;
   const parsedImages: string[] = raw.images ? JSON.parse(raw.images) : [];
+
+  const vehicleIds = await resolveVehicleIds(rawVehicleIds, newVehicleStrings);
 
   try {
     await prisma.product.update({
