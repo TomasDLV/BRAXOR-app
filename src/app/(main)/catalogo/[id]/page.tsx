@@ -129,7 +129,7 @@ export default async function ProductDetailPage({
                 <p className="text-zinc-600 text-[10px] uppercase tracking-widest font-bold mb-2">
                   Descripción
                 </p>
-                <p className="text-zinc-300 text-sm leading-relaxed">{product.description}</p>
+                <p className="text-zinc-300 text-sm leading-relaxed whitespace-pre-wrap">{product.description}</p>
               </div>
             )}
 
