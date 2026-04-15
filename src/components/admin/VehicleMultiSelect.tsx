@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useMemo, useRef } from "react";
-import { Car, Plus, X, ChevronDown, Search } from "lucide-react";
+import { useState, useMemo, useRef, useEffect } from "react";
+import { Car, Plus, X, ChevronDown, Search, CheckCircle2 } from "lucide-react";
 
 type Vehicle = {
   id: string;
@@ -13,7 +13,7 @@ type Vehicle = {
 
 type VehicleEntry =
   | { kind: "existing"; id: string }
-  | { kind: "new"; raw: string };
+  | { kind: "new"; make: string; model: string; yearStart: number; yearEnd: number };
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -25,30 +25,84 @@ function vehicleLabel(v: Vehicle) {
   return `${v.make} ${v.model}${years}`;
 }
 
-interface ParsedVehicle {
-  make: string;
-  model: string;
-  yearStart: number;
-  yearEnd: number;
+function entryRaw(e: VehicleEntry, vehicles: Vehicle[]) {
+  if (e.kind === "existing") {
+    const v = vehicles.find((v) => v.id === e.id);
+    return v ? `${v.make} ${v.model} ${v.yearStart ?? 0}-${v.yearEnd ?? 9999}` : "";
+  }
+  return `${e.make} ${e.model} ${e.yearStart}-${e.yearEnd}`;
 }
 
-function parseVehicleText(text: string): ParsedVehicle | null {
-  const m = text.trim().match(/^(\S+)\s+(.+?)\s+(\d{4})-(\d{4})$/i);
-  if (!m) return null;
-  const [, make, model, ys, ye] = m;
-  const yearStart = parseInt(ys, 10);
-  const yearEnd = parseInt(ye, 10);
-  if (yearEnd < yearStart || yearStart < 1900 || yearEnd > 2100) return null;
-  return { make, model: model.trim(), yearStart, yearEnd };
+// ─── Autocomplete input ───────────────────────────────────────────────────────
+
+function AutocompleteInput({
+  value,
+  onChange,
+  suggestions,
+  placeholder,
+  disabled,
+}: {
+  value: string;
+  onChange: (v: string) => void;
+  suggestions: string[];
+  placeholder?: string;
+  disabled?: boolean;
+}) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    function handleClick(e: MouseEvent) {
+      if (!ref.current?.contains(e.target as Node)) setOpen(false);
+    }
+    document.addEventListener("mousedown", handleClick);
+    return () => document.removeEventListener("mousedown", handleClick);
+  }, []);
+
+  const filtered = useMemo(
+    () =>
+      suggestions
+        .filter(
+          (s) => s.toLowerCase().includes(value.toLowerCase()) && s !== value
+        )
+        .slice(0, 8),
+    [suggestions, value]
+  );
+
+  return (
+    <div ref={ref} className="relative">
+      <input
+        type="text"
+        value={value}
+        disabled={disabled}
+        onChange={(e) => { onChange(e.target.value); setOpen(true); }}
+        onFocus={() => setOpen(true)}
+        placeholder={placeholder}
+        className="w-full bg-[#0d0d0d] border border-zinc-800 focus:border-yellow-500/50 disabled:opacity-40 disabled:cursor-not-allowed text-white text-xs px-3 py-2.5 rounded-lg focus:outline-none placeholder-zinc-700 transition-colors"
+      />
+      {open && filtered.length > 0 && (
+        <div className="absolute z-30 left-0 right-0 top-full mt-1 bg-[#1c1c1c] border border-zinc-700 rounded-lg overflow-hidden shadow-xl">
+          {filtered.map((s) => (
+            <button
+              key={s}
+              type="button"
+              onMouseDown={(e) => {
+                e.preventDefault();
+                onChange(s);
+                setOpen(false);
+              }}
+              className="w-full text-left px-3 py-2 text-xs text-zinc-300 hover:bg-zinc-800 hover:text-white transition-colors cursor-pointer"
+            >
+              {s}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
 }
 
-function rawLabel(raw: string) {
-  const p = parseVehicleText(raw);
-  if (!p) return raw;
-  return `${p.make} ${p.model} (${p.yearStart}–${p.yearEnd})`;
-}
-
-// ─── Component ────────────────────────────────────────────────────────────────
+// ─── Main component ───────────────────────────────────────────────────────────
 
 export default function VehicleMultiSelect({
   vehicles,
@@ -60,42 +114,93 @@ export default function VehicleMultiSelect({
   const [entries, setEntries] = useState<VehicleEntry[]>(
     defaultSelected.map((id) => ({ kind: "existing" as const, id }))
   );
-  const [inputText, setInputText] = useState("");
+
+  // Add-form state
+  const [make, setMake] = useState("");
+  const [model, setModel] = useState("");
+  const [yearStart, setYearStart] = useState("");
+  const [yearEnd, setYearEnd] = useState("");
+
+  // Selector panel
   const [selectorOpen, setSelectorOpen] = useState(false);
   const [filterText, setFilterText] = useState("");
-  const inputRef = useRef<HTMLInputElement>(null);
 
-  // IDs already selected (for dedup in the selector list)
+  // ── Derived ──
+
   const selectedIds = useMemo(
-    () => new Set(entries.filter((e) => e.kind === "existing").map((e) => (e as { kind: "existing"; id: string }).id)),
+    () =>
+      new Set(
+        entries
+          .filter((e) => e.kind === "existing")
+          .map((e) => (e as { kind: "existing"; id: string }).id)
+      ),
     [entries]
   );
 
-  // Parse live input
-  const parsed = useMemo(() => parseVehicleText(inputText), [inputText]);
-
-  // Check if already selected as new
-  const alreadyNewRaw = useMemo(
-    () => new Set(entries.filter((e) => e.kind === "new").map((e) => (e as { kind: "new"; raw: string }).raw)),
-    [entries]
+  const allMakes = useMemo(
+    () => [...new Set(vehicles.map((v) => v.make))].sort(),
+    [vehicles]
   );
 
-  // Autocomplete suggestions from existing vehicles
-  const suggestions = useMemo(() => {
-    if (!inputText.trim()) return [];
-    const q = inputText.toLowerCase();
-    return vehicles
-      .filter(
+  const modelsForMake = useMemo(() => {
+    if (!make.trim()) return [...new Set(vehicles.map((v) => v.model))].sort();
+    return [
+      ...new Set(
+        vehicles
+          .filter((v) => v.make.toLowerCase() === make.trim().toLowerCase())
+          .map((v) => v.model)
+      ),
+    ].sort();
+  }, [vehicles, make]);
+
+  // Match in DB by make+model
+  const dbMatch = useMemo(() => {
+    if (!make.trim() || !model.trim()) return null;
+    return (
+      vehicles.find(
         (v) =>
-          !selectedIds.has(v.id) &&
-          (v.make.toLowerCase().includes(q) ||
-            v.model.toLowerCase().includes(q) ||
-            vehicleLabel(v).toLowerCase().includes(q))
-      )
-      .slice(0, 5);
-  }, [inputText, vehicles, selectedIds]);
+          v.make.toLowerCase() === make.trim().toLowerCase() &&
+          v.model.toLowerCase() === model.trim().toLowerCase()
+      ) ?? null
+    );
+  }, [vehicles, make, model]);
 
-  // Grouped vehicle list for the checkbox selector
+  // Whether this entry is already in the list
+  const alreadyAdded = useMemo(() => {
+    if (!make.trim() || !model.trim()) return false;
+    return entries.some((e) => {
+      if (e.kind === "existing") {
+        const v = vehicles.find((v) => v.id === e.id);
+        return (
+          v &&
+          v.make.toLowerCase() === make.trim().toLowerCase() &&
+          v.model.toLowerCase() === model.trim().toLowerCase()
+        );
+      }
+      return (
+        e.make.toLowerCase() === make.trim().toLowerCase() &&
+        e.model.toLowerCase() === model.trim().toLowerCase()
+      );
+    });
+  }, [entries, make, model, vehicles]);
+
+  const canAdd = useMemo(() => {
+    if (!make.trim() || !model.trim() || alreadyAdded) return false;
+    if (dbMatch) return true; // existing — years optional
+    // new: require valid year range
+    const ys = parseInt(yearStart, 10);
+    const ye = parseInt(yearEnd, 10);
+    return (
+      yearStart.length === 4 &&
+      yearEnd.length === 4 &&
+      !isNaN(ys) &&
+      !isNaN(ye) &&
+      ye >= ys
+    );
+  }, [make, model, dbMatch, yearStart, yearEnd, alreadyAdded]);
+
+  // ── Grouped list for selector panel ──
+
   const grouped = useMemo(() => {
     const q = filterText.toLowerCase();
     const filtered = vehicles.filter(
@@ -110,34 +215,32 @@ export default function VehicleMultiSelect({
     ).sort(([a], [b]) => a.localeCompare(b));
   }, [vehicles, filterText]);
 
-  // ── Mutations ──
+  // ── Actions ──
+
+  function handleAdd() {
+    if (!canAdd) return;
+    if (dbMatch) {
+      setEntries((prev) => [...prev, { kind: "existing", id: dbMatch.id }]);
+    } else {
+      setEntries((prev) => [
+        ...prev,
+        {
+          kind: "new",
+          make: make.trim(),
+          model: model.trim(),
+          yearStart: parseInt(yearStart, 10),
+          yearEnd: parseInt(yearEnd, 10),
+        },
+      ]);
+    }
+    setMake("");
+    setModel("");
+    setYearStart("");
+    setYearEnd("");
+  }
 
   function removeEntry(index: number) {
     setEntries((prev) => prev.filter((_, i) => i !== index));
-  }
-
-  function addExisting(id: string) {
-    if (selectedIds.has(id)) return;
-    setEntries((prev) => [...prev, { kind: "existing", id }]);
-    setInputText("");
-  }
-
-  function addNew() {
-    if (!parsed) return;
-    const raw = inputText.trim();
-    if (alreadyNewRaw.has(raw)) return;
-    // Check if it already exists in DB
-    const existing = vehicles.find(
-      (v) =>
-        v.make.toLowerCase() === parsed.make.toLowerCase() &&
-        v.model.toLowerCase() === parsed.model.toLowerCase()
-    );
-    if (existing) {
-      addExisting(existing.id);
-    } else {
-      setEntries((prev) => [...prev, { kind: "new", raw }]);
-      setInputText("");
-    }
   }
 
   function toggleExisting(id: string) {
@@ -150,48 +253,18 @@ export default function VehicleMultiSelect({
     }
   }
 
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === "Enter") {
-      e.preventDefault();
-      if (suggestions.length > 0 && !parsed) {
-        addExisting(suggestions[0].id);
-      } else if (parsed) {
-        addNew();
-      }
+  // ── Render tag label ──
+
+  function entryLabel(entry: VehicleEntry) {
+    if (entry.kind === "existing") {
+      const v = vehicles.find((v) => v.id === entry.id);
+      return v ? vehicleLabel(v) : "?";
     }
-  };
-
-  // Render a selected tag
-  function EntryTag({ entry, index }: { entry: VehicleEntry; index: number }) {
-    const label =
-      entry.kind === "existing"
-        ? vehicleLabel(vehicles.find((v) => v.id === entry.id)!)
-        : rawLabel((entry as { kind: "new"; raw: string }).raw);
-    const isNew = entry.kind === "new";
-
-    return (
-      <button
-        type="button"
-        onClick={() => removeEntry(index)}
-        className={`flex items-center gap-1.5 text-[11px] font-bold px-2.5 py-1 rounded-md transition-colors cursor-pointer group/tag ${
-          isNew
-            ? "bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 hover:bg-red-500/10 hover:border-red-500/30 hover:text-red-400"
-            : "bg-yellow-500/10 border border-yellow-500/30 text-yellow-400 hover:bg-red-500/10 hover:border-red-500/30 hover:text-red-400"
-        }`}
-      >
-        {isNew && (
-          <span className="text-[9px] font-black uppercase tracking-wider opacity-70 mr-0.5">
-            NUEVO
-          </span>
-        )}
-        {label}
-        <X size={10} strokeWidth={2.5} className="flex-shrink-0" />
-      </button>
-    );
+    return `${entry.make} ${entry.model} (${entry.yearStart}–${entry.yearEnd})`;
   }
 
   return (
-    <div className="flex flex-col gap-2">
+    <div className="flex flex-col gap-3">
       {/* Label */}
       <div className="flex items-center justify-between">
         <label className="text-zinc-400 text-xs uppercase tracking-widest font-bold flex items-center gap-2">
@@ -209,84 +282,153 @@ export default function VehicleMultiSelect({
       </div>
 
       {/* Hidden inputs */}
-      {entries.map((entry, i) =>
-        entry.kind === "existing" ? (
-          <input key={i} type="hidden" name="vehicleId" value={entry.id} />
-        ) : (
-          <input key={i} type="hidden" name="vehicleNew" value={(entry as { kind: "new"; raw: string }).raw} />
-        )
-      )}
+      {entries.map((entry, i) => {
+        if (entry.kind === "existing") {
+          return <input key={i} type="hidden" name="vehicleId" value={entry.id} />;
+        }
+        const raw = `${entry.make} ${entry.model} ${entry.yearStart}-${entry.yearEnd}`;
+        return <input key={i} type="hidden" name="vehicleNew" value={raw} />;
+      })}
 
-      {/* ── Creatable input ── */}
-      <div className="relative">
-        <div className="flex gap-2">
-          <div className="relative flex-1">
-            <input
-              ref={inputRef}
-              type="text"
-              value={inputText}
-              onChange={(e) => setInputText(e.target.value)}
-              onKeyDown={handleKeyDown}
-              placeholder='Ej: Toyota Hilux 2016-2021  ·  Ford Ranger 2019-2023'
-              className="w-full bg-[#0d0d0d] border border-zinc-800 focus:border-yellow-500/50 text-white text-xs px-4 py-2.5 rounded-lg focus:outline-none placeholder-zinc-700 transition-colors"
-            />
-            {/* Parse preview */}
-            {parsed && (
-              <div className="absolute -bottom-5 left-0 flex items-center gap-1.5 text-[10px] text-emerald-500/80 font-medium pointer-events-none">
-                <span>{parsed.make}</span>
-                <span className="text-zinc-700">·</span>
-                <span>{parsed.model}</span>
-                <span className="text-zinc-700">·</span>
-                <span className="font-mono">{parsed.yearStart}–{parsed.yearEnd}</span>
-              </div>
-            )}
-          </div>
-          <button
-            type="button"
-            onClick={addNew}
-            disabled={!parsed}
-            title="Crear y asignar nuevo vehículo"
-            className="flex items-center justify-center w-10 h-10 bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/30 text-emerald-400 rounded-lg transition-colors disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer flex-shrink-0"
-          >
-            <Plus size={16} strokeWidth={2.5} />
-          </button>
-        </div>
-
-        {/* Autocomplete dropdown */}
-        {suggestions.length > 0 && inputText.trim() && (
-          <div className="absolute z-20 left-0 right-12 top-full mt-1 bg-[#1a1a1a] border border-zinc-800 rounded-lg overflow-hidden shadow-xl">
-            {suggestions.map((v) => (
+      {/* Selected tags */}
+      {entries.length > 0 && (
+        <div className="flex flex-wrap gap-2 p-3 bg-[#0d0d0d] border border-zinc-800 rounded-lg">
+          {entries.map((entry, i) => {
+            const isNew = entry.kind === "new";
+            return (
               <button
-                key={v.id}
+                key={i}
                 type="button"
-                onMouseDown={(e) => { e.preventDefault(); addExisting(v.id); }}
-                className="w-full flex items-center justify-between px-4 py-2.5 hover:bg-zinc-800 text-left transition-colors cursor-pointer"
+                onClick={() => removeEntry(i)}
+                className={`flex items-center gap-1.5 text-[11px] font-bold px-2.5 py-1 rounded-md transition-colors cursor-pointer ${
+                  isNew
+                    ? "bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 hover:bg-red-500/10 hover:border-red-500/30 hover:text-red-400"
+                    : "bg-yellow-500/10 border border-yellow-500/30 text-yellow-400 hover:bg-red-500/10 hover:border-red-500/30 hover:text-red-400"
+                }`}
               >
-                <span className="text-white text-xs font-semibold">
-                  {v.make} {v.model}
-                </span>
-                {(v.yearStart || v.yearEnd) && (
-                  <span className="text-zinc-600 text-[10px] font-mono">
-                    {v.yearStart ?? "?"}–{v.yearEnd ?? "hoy"}
+                {isNew && (
+                  <span className="text-[9px] font-black uppercase tracking-wider opacity-60">
+                    NUEVO ·{" "}
                   </span>
                 )}
+                {entryLabel(entry)}
+                <X size={10} strokeWidth={2.5} className="flex-shrink-0" />
               </button>
-            ))}
-          </div>
-        )}
-      </div>
-
-      {/* Tags de seleccionados */}
-      {entries.length > 0 && (
-        <div className="flex flex-wrap gap-2 p-3 bg-[#0d0d0d] border border-zinc-800 rounded-lg mt-2">
-          {entries.map((entry, i) => (
-            <EntryTag key={i} entry={entry} index={i} />
-          ))}
+            );
+          })}
         </div>
       )}
 
+      {/* ── Add form ── */}
+      <div className="bg-[#111] border border-zinc-800 rounded-xl p-4 flex flex-col gap-3">
+        <p className="text-zinc-600 text-[10px] font-black uppercase tracking-widest">
+          Agregar vehículo
+        </p>
+
+        {/* Row 1: Marca + Modelo */}
+        <div className="grid grid-cols-2 gap-3">
+          <div className="flex flex-col gap-1.5">
+            <span className="text-zinc-500 text-[10px] uppercase tracking-widest font-bold">
+              Marca
+            </span>
+            <AutocompleteInput
+              value={make}
+              onChange={(v) => { setMake(v); setModel(""); }}
+              suggestions={allMakes}
+              placeholder="Toyota, Ford…"
+            />
+          </div>
+          <div className="flex flex-col gap-1.5">
+            <span className="text-zinc-500 text-[10px] uppercase tracking-widest font-bold">
+              Modelo
+            </span>
+            <AutocompleteInput
+              value={model}
+              onChange={setModel}
+              suggestions={modelsForMake}
+              placeholder="Hilux, Ranger…"
+              disabled={!make.trim()}
+            />
+          </div>
+        </div>
+
+        {/* DB match feedback */}
+        {dbMatch && make && model && (
+          <div className="flex items-center gap-2 text-[11px] text-emerald-400 bg-emerald-500/8 border border-emerald-500/20 rounded-lg px-3 py-2">
+            <CheckCircle2 size={13} strokeWidth={2} className="flex-shrink-0" />
+            <span>
+              Encontrado en BD — {vehicleLabel(dbMatch)} · Se usará el registro existente
+            </span>
+          </div>
+        )}
+
+        {/* Row 2: Años — solo requeridos si es nuevo */}
+        {(!dbMatch || (make && model)) && (
+          <div className="grid grid-cols-2 gap-3">
+            <div className="flex flex-col gap-1.5">
+              <span className="text-zinc-500 text-[10px] uppercase tracking-widest font-bold">
+                Año desde{" "}
+                {dbMatch ? (
+                  <span className="text-zinc-700 normal-case tracking-normal font-normal">
+                    — opcional
+                  </span>
+                ) : (
+                  <span className="text-yellow-500">*</span>
+                )}
+              </span>
+              <input
+                type="number"
+                value={yearStart}
+                onChange={(e) => setYearStart(e.target.value)}
+                placeholder={dbMatch?.yearStart?.toString() ?? "2018"}
+                min={1990}
+                max={2100}
+                className="bg-[#0d0d0d] border border-zinc-800 focus:border-yellow-500/50 text-white text-xs px-3 py-2.5 rounded-lg focus:outline-none placeholder-zinc-700 transition-colors [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+              />
+            </div>
+            <div className="flex flex-col gap-1.5">
+              <span className="text-zinc-500 text-[10px] uppercase tracking-widest font-bold">
+                Año hasta{" "}
+                {dbMatch ? (
+                  <span className="text-zinc-700 normal-case tracking-normal font-normal">
+                    — opcional
+                  </span>
+                ) : (
+                  <span className="text-yellow-500">*</span>
+                )}
+              </span>
+              <input
+                type="number"
+                value={yearEnd}
+                onChange={(e) => setYearEnd(e.target.value)}
+                placeholder={dbMatch?.yearEnd?.toString() ?? "2023"}
+                min={1990}
+                max={2100}
+                className="bg-[#0d0d0d] border border-zinc-800 focus:border-yellow-500/50 text-white text-xs px-3 py-2.5 rounded-lg focus:outline-none placeholder-zinc-700 transition-colors [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+              />
+            </div>
+          </div>
+        )}
+
+        {alreadyAdded && make && model && (
+          <p className="text-[11px] text-zinc-600 italic">
+            Ya está en la lista.
+          </p>
+        )}
+
+        <button
+          type="button"
+          onClick={handleAdd}
+          disabled={!canAdd}
+          className="flex items-center justify-center gap-2 bg-zinc-800 hover:bg-zinc-700 disabled:opacity-30 disabled:cursor-not-allowed border border-zinc-700 text-white text-xs font-black uppercase tracking-widest py-2.5 rounded-lg transition-colors cursor-pointer"
+        >
+          <Plus size={13} strokeWidth={3} />
+          Agregar vehículo
+        </button>
+      </div>
+
       {/* ── Selector de existentes (collapsible) ── */}
-      <div className="bg-[#111] border border-zinc-800 rounded-lg overflow-hidden">
+      <div className="bg-[#111] border border-zinc-800 rounded-xl overflow-hidden">
         <button
           type="button"
           onClick={() => setSelectorOpen((v) => !v)}
@@ -295,7 +437,7 @@ export default function VehicleMultiSelect({
           <span className="text-xs font-bold uppercase tracking-widest">
             {selectorOpen
               ? "Cerrar lista"
-              : `Seleccionar de existentes${vehicles.length > 0 ? ` — ${vehicles.length} en base de datos` : ""}`}
+              : `Selección rápida — ${vehicles.length} en base de datos`}
           </span>
           <ChevronDown
             size={14}
@@ -305,7 +447,6 @@ export default function VehicleMultiSelect({
 
         {selectorOpen && (
           <div className="border-t border-zinc-800">
-            {/* Search */}
             <div className="relative px-3 py-3 border-b border-zinc-800/60">
               <Search
                 size={13}
@@ -319,22 +460,17 @@ export default function VehicleMultiSelect({
                 className="w-full bg-[#0d0d0d] border border-zinc-800 text-white text-xs px-4 py-2 pl-8 rounded-md focus:outline-none focus:border-yellow-500/50 placeholder-zinc-700 transition-colors"
               />
             </div>
-
-            {/* Vehicle list */}
             <div className="max-h-64 overflow-y-auto">
               {grouped.length === 0 ? (
                 <p className="text-zinc-700 text-xs text-center py-8 uppercase tracking-widest">
                   {filterText ? "Sin resultados" : "No hay modelos en la BD"}
                 </p>
               ) : (
-                grouped.map(([make, makeVehicles]) => (
-                  <div key={make}>
-                    <div className="px-4 py-2 bg-zinc-900/40 border-b border-zinc-800/50 flex items-center justify-between">
+                grouped.map(([mk, makeVehicles]) => (
+                  <div key={mk}>
+                    <div className="px-4 py-2 bg-zinc-900/40 border-b border-zinc-800/50">
                       <span className="text-zinc-500 text-[10px] font-black uppercase tracking-widest">
-                        {make}
-                      </span>
-                      <span className="text-zinc-700 text-[10px] font-mono">
-                        {makeVehicles.length} modelo{makeVehicles.length !== 1 ? "s" : ""}
+                        {mk}
                       </span>
                     </div>
                     {makeVehicles.map((v) => {
@@ -375,24 +511,14 @@ export default function VehicleMultiSelect({
                 ))
               )}
             </div>
-
             {grouped.length > 0 && (
-              <div className="flex items-center justify-between px-4 py-2.5 border-t border-zinc-800 bg-zinc-900/30">
-                <button
-                  type="button"
-                  onClick={() =>
-                    setEntries(vehicles.map((v) => ({ kind: "existing" as const, id: v.id })))
-                  }
-                  className="text-zinc-600 hover:text-zinc-300 text-[10px] font-bold uppercase tracking-widest transition-colors cursor-pointer"
-                >
-                  Todos
-                </button>
+              <div className="flex items-center justify-end px-4 py-2.5 border-t border-zinc-800 bg-zinc-900/30">
                 <button
                   type="button"
                   onClick={() => setEntries([])}
                   className="text-zinc-600 hover:text-red-400 text-[10px] font-bold uppercase tracking-widest transition-colors cursor-pointer"
                 >
-                  Limpiar
+                  Limpiar todo
                 </button>
               </div>
             )}
