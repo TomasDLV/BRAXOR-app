@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo, useTransition } from "react";
+import { useState, useMemo, useTransition, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -110,7 +110,17 @@ function VehicleCascadeFilter({
     [vehicles, make, model]
   );
 
-  const hasAnyFilter = make || model || year;
+  // Local state for year input — only push to URL on blur/Enter
+  const [localYear, setLocalYear] = useState(year ?? "");
+  useEffect(() => { setLocalYear(year ?? ""); }, [year]);
+
+  function commitYear(value: string) {
+    const trimmed = value.trim();
+    if (trimmed === (year ?? "")) return; // no change
+    onChange(make, model, trimmed || null);
+  }
+
+  const hasAnyFilter = make || model || year || localYear;
 
   const selectClass = (disabled: boolean) =>
     `w-full bg-white/[0.04] border text-sm px-3 py-2.5 rounded-xl focus:outline-none transition-all appearance-none cursor-pointer ${
@@ -214,8 +224,10 @@ function VehicleCascadeFilter({
           <input
             type="number"
             disabled={!model}
-            value={year ?? ""}
-            onChange={(e) => onChange(make, model, e.target.value || null)}
+            value={localYear}
+            onChange={(e) => setLocalYear(e.target.value)}
+            onBlur={(e) => commitYear(e.target.value)}
+            onKeyDown={(e) => { if (e.key === "Enter") { e.currentTarget.blur(); } }}
             placeholder={
               activeVehicle
                 ? `${activeVehicle.yearStart ?? "?"}–${activeVehicle.yearEnd ?? "hoy"}`
@@ -229,9 +241,9 @@ function VehicleCascadeFilter({
                 : "border-white/10 text-white hover:border-white/20 focus:border-yellow-500/40"
             }`}
           />
-          {year && (
+          {(year || localYear) && (
             <button
-              onClick={() => onChange(make, model, null)}
+              onClick={() => { setLocalYear(""); onChange(make, model, null); }}
               className="absolute right-2.5 top-1/2 -translate-y-1/2 text-zinc-600 hover:text-white transition-colors cursor-pointer"
             >
               <X size={11} strokeWidth={2.5} />
