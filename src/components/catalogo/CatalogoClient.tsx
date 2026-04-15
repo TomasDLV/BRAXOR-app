@@ -1,12 +1,13 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useTransition } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Search, Zap, Star, ArrowRight, ImageOff, LayoutGrid,
-  SlidersHorizontal, X, Car, ChevronDown,
+  SlidersHorizontal, X, Car, ChevronDown, Loader2,
 } from "lucide-react";
 import { CategoryIcon } from "@/lib/category-icons";
 import AddToCartButton from "@/components/cart/AddToCartButton";
@@ -48,6 +49,16 @@ export interface CatalogVehicle {
   yearEnd: number | null;
 }
 
+export interface CatalogFilters {
+  categoria: string;
+  brand: string | null;
+  vehicleMake: string | null;
+  vehicleModel: string | null;
+  vehicleYear: string | null;
+  isNew: boolean;
+  isFeatured: boolean;
+}
+
 const formatARS = (n: number) =>
   new Intl.NumberFormat("es-AR", {
     style: "currency",
@@ -55,176 +66,187 @@ const formatARS = (n: number) =>
     maximumFractionDigits: 0,
   }).format(n);
 
-// ─── Vehicle filter section ───────────────────────────────────────────────────
+// ─── Vehicle Cascade Filter ───────────────────────────────────────────────────
 
-function VehicleFilter({
+function VehicleCascadeFilter({
   vehicles,
-  activeVehicle,
-  activeYear,
-  onSelect,
-  onYearChange,
-  variant = "desktop",
+  make,
+  model,
+  year,
+  onChange,
 }: {
   vehicles: CatalogVehicle[];
-  activeVehicle: string | null;
-  activeYear: number | null;
-  onSelect: (id: string | null) => void;
-  onYearChange: (year: number | null) => void;
-  variant?: "desktop" | "mobile";
+  make: string | null;
+  model: string | null;
+  year: string | null;
+  onChange: (make: string | null, model: string | null, year: string | null) => void;
 }) {
-  const [openMakes, setOpenMakes] = useState<Record<string, boolean>>({});
-  const [vehicleSearch, setVehicleSearch] = useState("");
-
-  const grouped = useMemo(() => {
-    const q = vehicleSearch.toLowerCase();
-    const filtered = q
-      ? vehicles.filter(
-          (v) => v.make.toLowerCase().includes(q) || v.model.toLowerCase().includes(q)
-        )
-      : vehicles;
-    return Object.entries(
-      filtered.reduce<Record<string, CatalogVehicle[]>>((acc, v) => {
-        (acc[v.make] ??= []).push(v);
-        return acc;
-      }, {})
-    ).sort(([a], [b]) => a.localeCompare(b));
-  }, [vehicles, vehicleSearch]);
-
-  const toggleMake = (make: string) =>
-    setOpenMakes((prev) => ({ ...prev, [make]: !prev[make] }));
-
-  const activeVehicleData = useMemo(
-    () => vehicles.find((v) => v.id === activeVehicle) ?? null,
-    [vehicles, activeVehicle]
+  const allMakes = useMemo(
+    () => [...new Set(vehicles.map((v) => v.make))].sort(),
+    [vehicles]
   );
 
-  if (vehicles.length === 0) return null;
+  const modelsForMake = useMemo(
+    () =>
+      make
+        ? [...new Set(
+            vehicles
+              .filter((v) => v.make.toLowerCase() === make.toLowerCase())
+              .map((v) => v.model)
+          )].sort()
+        : [],
+    [vehicles, make]
+  );
 
-  const isMobile = variant === "mobile";
+  const activeVehicle = useMemo(
+    () =>
+      make && model
+        ? (vehicles.find(
+            (v) =>
+              v.make.toLowerCase() === make.toLowerCase() &&
+              v.model.toLowerCase() === model.toLowerCase()
+          ) ?? null)
+        : null,
+    [vehicles, make, model]
+  );
+
+  const hasAnyFilter = make || model || year;
+
+  const selectClass = (disabled: boolean) =>
+    `w-full bg-white/[0.04] border text-sm px-3 py-2.5 rounded-xl focus:outline-none transition-all appearance-none cursor-pointer ${
+      disabled
+        ? "border-white/[0.04] text-zinc-700 cursor-not-allowed opacity-50"
+        : "border-white/10 text-white hover:border-white/20 focus:border-yellow-500/40"
+    }`;
 
   return (
-    <div className="flex flex-col gap-2">
-      <p className="text-zinc-500 text-[10px] font-bold uppercase tracking-widest mb-1">
-        Mi Vehículo
-      </p>
-
-      {vehicles.length > 6 && (
-        <div className="relative mb-1">
-          <Search size={11} className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-600 pointer-events-none" />
-          <input
-            type="text"
-            value={vehicleSearch}
-            onChange={(e) => setVehicleSearch(e.target.value)}
-            placeholder="Buscar modelo..."
-            className="w-full bg-white/5 border border-white/10 text-white text-xs pl-7 pr-3 py-2 rounded-xl focus:outline-none focus:border-yellow-500/30 placeholder-zinc-600 transition-colors"
-          />
-        </div>
-      )}
-
-      <button
-        onClick={() => { onSelect(null); onYearChange(null); }}
-        className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-bold transition-all cursor-pointer text-left ${
-          isMobile ? "px-4" : ""
-        } ${
-          activeVehicle === null
-            ? "bg-white/10 border border-yellow-500/50 text-yellow-400"
-            : "bg-white/[0.02] border border-white/[0.05] text-zinc-500 hover:text-white hover:bg-white/5"
-        }`}
-      >
-        <div className="w-7 h-7 rounded-full bg-white/5 flex items-center justify-center flex-shrink-0">
-          <Car size={12} className="text-zinc-400" />
-        </div>
-        Todos
-      </button>
-
-      <div className="flex flex-col gap-0.5">
-        {grouped.map(([make, makeVehicles]) => {
-          const isOpen = openMakes[make] ?? false;
-          const hasMakeActive = makeVehicles.some((v) => v.id === activeVehicle);
-
-          return (
-            <div key={make}>
-              <button
-                onClick={() => toggleMake(make)}
-                className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-xs font-black uppercase tracking-widest transition-colors cursor-pointer ${
-                  hasMakeActive
-                    ? "text-yellow-400"
-                    : "text-zinc-600 hover:text-zinc-300 hover:bg-white/5"
-                }`}
-              >
-                <span>{make}</span>
-                <ChevronDown
-                  size={12}
-                  className={`transition-transform duration-200 ${isOpen || hasMakeActive ? "rotate-180" : ""}`}
-                />
-              </button>
-
-              {(isOpen || hasMakeActive) && (
-                <div className="ml-3 flex flex-col gap-0.5 border-l border-white/10 pl-3 mb-1">
-                  {makeVehicles.map((v) => {
-                    const isActive = activeVehicle === v.id;
-                    return (
-                      <button
-                        key={v.id}
-                        onClick={() => { onSelect(isActive ? null : v.id); onYearChange(null); }}
-                        className={`flex items-center justify-between px-2 py-2 rounded-lg text-xs font-semibold transition-colors cursor-pointer text-left ${
-                          isActive
-                            ? "bg-white/10 text-yellow-400"
-                            : "text-zinc-500 hover:text-white hover:bg-white/5"
-                        }`}
-                      >
-                        <span>{v.model}</span>
-                        {(v.yearStart || v.yearEnd) && (
-                          <span className="text-zinc-700 font-mono text-[10px] flex-shrink-0 ml-2">
-                            {v.yearStart ?? "?"}–{v.yearEnd ?? "hoy"}
-                          </span>
-                        )}
-                      </button>
-                    );
-                  })}
-                </div>
-              )}
-            </div>
-          );
-        })}
+    <div className="flex flex-col gap-3">
+      <div className="flex items-center justify-between">
+        <p className="text-zinc-500 text-[10px] font-bold uppercase tracking-widest flex items-center gap-1.5">
+          <Car size={10} strokeWidth={2.5} />
+          Mi Vehículo
+        </p>
+        {hasAnyFilter && (
+          <button
+            onClick={() => onChange(null, null, null)}
+            className="text-zinc-700 hover:text-red-400 text-[10px] font-bold uppercase tracking-widest transition-colors cursor-pointer flex items-center gap-1"
+          >
+            <X size={9} strokeWidth={2.5} />
+            Limpiar
+          </button>
+        )}
       </div>
 
-      {/* Year refiner — shown when a vehicle is selected */}
-      {activeVehicleData && (
-        <div className="mt-1 flex flex-col gap-1.5">
-          <p className="text-zinc-600 text-[10px] font-bold uppercase tracking-widest">
-            Filtrar por año
-          </p>
-          <div className="relative">
-            <input
-              type="number"
-              min={activeVehicleData.yearStart ?? 1990}
-              max={activeVehicleData.yearEnd ?? new Date().getFullYear()}
-              placeholder={`${activeVehicleData.yearStart ?? "?"}–${activeVehicleData.yearEnd ?? "hoy"}`}
-              value={activeYear ?? ""}
-              onChange={(e) => {
-                const val = e.target.value;
-                onYearChange(val ? parseInt(val, 10) : null);
-              }}
-              className="w-full bg-white/5 border border-white/10 focus:border-yellow-500/40 text-white text-xs px-3 py-2 rounded-xl focus:outline-none placeholder-zinc-700 transition-colors [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-            />
-            {activeYear && (
-              <button
-                onClick={() => onYearChange(null)}
-                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-zinc-600 hover:text-white transition-colors cursor-pointer"
-              >
-                <X size={11} strokeWidth={2.5} />
-              </button>
-            )}
-          </div>
-          {activeYear && (
-            <p className="text-[10px] text-zinc-700">
-              Mostrando compatibles con año{" "}
-              <span className="text-yellow-500 font-bold">{activeYear}</span>
-            </p>
+      {/* Marca */}
+      <div className="flex flex-col gap-1.5">
+        <label className="text-zinc-600 text-[10px] uppercase tracking-widest font-bold">
+          Marca
+        </label>
+        <div className="relative">
+          <select
+            value={make ?? ""}
+            onChange={(e) => onChange(e.target.value || null, null, null)}
+            className={selectClass(false)}
+          >
+            <option value="" className="bg-[#1a1a1a] text-zinc-500">
+              — Seleccionar —
+            </option>
+            {allMakes.map((m) => (
+              <option key={m} value={m} className="bg-[#1a1a1a] text-white">
+                {m}
+              </option>
+            ))}
+          </select>
+          <ChevronDown
+            size={12}
+            className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-500 pointer-events-none"
+          />
+        </div>
+      </div>
+
+      {/* Modelo */}
+      <div className="flex flex-col gap-1.5">
+        <label
+          className={`text-[10px] uppercase tracking-widest font-bold transition-colors ${
+            make ? "text-zinc-600" : "text-zinc-800"
+          }`}
+        >
+          Modelo
+        </label>
+        <div className="relative">
+          <select
+            value={model ?? ""}
+            disabled={!make}
+            onChange={(e) => onChange(make, e.target.value || null, null)}
+            className={selectClass(!make)}
+          >
+            <option value="" className="bg-[#1a1a1a] text-zinc-500">
+              — Seleccionar —
+            </option>
+            {modelsForMake.map((m) => (
+              <option key={m} value={m} className="bg-[#1a1a1a] text-white">
+                {m}
+              </option>
+            ))}
+          </select>
+          <ChevronDown
+            size={12}
+            className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-500 pointer-events-none"
+          />
+        </div>
+      </div>
+
+      {/* Año */}
+      <div className="flex flex-col gap-1.5">
+        <label
+          className={`text-[10px] uppercase tracking-widest font-bold transition-colors flex items-center gap-1.5 ${
+            model ? "text-zinc-600" : "text-zinc-800"
+          }`}
+        >
+          Año
+          {activeVehicle && (activeVehicle.yearStart || activeVehicle.yearEnd) && (
+            <span className="text-zinc-700 normal-case tracking-normal font-normal font-mono text-[9px]">
+              ({activeVehicle.yearStart ?? "?"}–{activeVehicle.yearEnd ?? "hoy"})
+            </span>
+          )}
+        </label>
+        <div className="relative">
+          <input
+            type="number"
+            disabled={!model}
+            value={year ?? ""}
+            onChange={(e) => onChange(make, model, e.target.value || null)}
+            placeholder={
+              activeVehicle
+                ? `${activeVehicle.yearStart ?? "?"}–${activeVehicle.yearEnd ?? "hoy"}`
+                : "Ej: 2018"
+            }
+            min={activeVehicle?.yearStart ?? 1990}
+            max={activeVehicle?.yearEnd ?? new Date().getFullYear()}
+            className={`w-full bg-white/[0.04] border text-sm px-3 py-2.5 rounded-xl focus:outline-none transition-all placeholder-zinc-700 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none pr-8 ${
+              !model
+                ? "border-white/[0.04] text-zinc-700 cursor-not-allowed opacity-50"
+                : "border-white/10 text-white hover:border-white/20 focus:border-yellow-500/40"
+            }`}
+          />
+          {year && (
+            <button
+              onClick={() => onChange(make, model, null)}
+              className="absolute right-2.5 top-1/2 -translate-y-1/2 text-zinc-600 hover:text-white transition-colors cursor-pointer"
+            >
+              <X size={11} strokeWidth={2.5} />
+            </button>
           )}
         </div>
-      )}
+        {year && (
+          <p className="text-[10px] text-zinc-700">
+            Compatibles con{" "}
+            <span className="text-yellow-500 font-bold">
+              {make} {model} {year}
+            </span>
+          </p>
+        )}
+      </div>
     </div>
   );
 }
@@ -236,69 +258,209 @@ export default function CatalogoClient({
   categories,
   brands,
   vehicles,
-  initialCategory = "Todos",
+  initialFilters,
 }: {
   products: CatalogProduct[];
   categories: CatalogCategory[];
   brands: CatalogBrand[];
   vehicles: CatalogVehicle[];
-  initialCategory?: string;
+  initialFilters: CatalogFilters;
 }) {
+  const router = useRouter();
+  const [isPending, startTransition] = useTransition();
+
+  // Text search — client-side only (instant, no roundtrip)
   const [query, setQuery] = useState("");
-  const [activeCategory, setActiveCategory] = useState(initialCategory);
-  const [activeBrand, setActiveBrand] = useState<string | null>(null);
-  const [activeVehicle, setActiveVehicle] = useState<string | null>(null);
-  const [activeYear, setActiveYear] = useState<number | null>(null);
-  const [filterNew, setFilterNew] = useState(false);
-  const [filterFeatured, setFilterFeatured] = useState(false);
   const [bottomSheetOpen, setBottomSheetOpen] = useState(false);
 
-  const filtered = useMemo(() => {
-    const q = query.toLowerCase().trim();
-    return products.filter((p) => {
-      const matchCat = activeCategory === "Todos" || p.category.name === activeCategory;
-      const matchBrand = !activeBrand || p.brand.name === activeBrand;
-      const matchVehicle = (() => {
-        if (!activeVehicle) return true;
-        if (!p.vehicleIds.includes(activeVehicle)) return false;
-        if (activeYear) {
-          const v = vehicles.find((v) => v.id === activeVehicle);
-          if (v) {
-            const afterStart = !v.yearStart || v.yearStart <= activeYear;
-            const beforeEnd = !v.yearEnd || v.yearEnd >= activeYear;
-            return afterStart && beforeEnd;
-          }
-        }
-        return true;
-      })();
-      const matchNew = !filterNew || p.isNew;
-      const matchFeatured = !filterFeatured || p.isFeatured;
-      const matchQuery =
-        !q ||
-        p.name.toLowerCase().includes(q) ||
-        p.brand.name.toLowerCase().includes(q) ||
-        p.sku.toLowerCase().includes(q);
-      return matchCat && matchBrand && matchVehicle && matchNew && matchFeatured && matchQuery;
-    });
-  }, [query, activeCategory, activeBrand, activeVehicle, activeYear, filterNew, filterFeatured, products, vehicles]);
+  // Destructure current filter state from server props
+  const {
+    categoria,
+    brand,
+    vehicleMake,
+    vehicleModel,
+    vehicleYear,
+    isNew,
+    isFeatured,
+  } = initialFilters;
 
-  const activeFiltersCount = [
-    activeCategory !== "Todos",
-    activeBrand !== null,
-    activeVehicle !== null,
-    activeYear !== null,
-    filterNew,
-    filterFeatured,
-  ].filter(Boolean).length;
+  // ── URL navigation helper ──────────────────────────────────────────────────
+
+  function pushFilters(overrides: Partial<CatalogFilters>) {
+    const next: CatalogFilters = { ...initialFilters, ...overrides };
+    const params = new URLSearchParams();
+
+    if (next.categoria && next.categoria !== "Todos")
+      params.set("categoria", next.categoria);
+    if (next.brand) params.set("brand", next.brand);
+    if (next.vehicleMake) params.set("vehicleMake", next.vehicleMake);
+    if (next.vehicleModel) params.set("vehicleModel", next.vehicleModel);
+    if (next.vehicleYear) params.set("vehicleYear", next.vehicleYear);
+    if (next.isNew) params.set("isNew", "true");
+    if (next.isFeatured) params.set("isFeatured", "true");
+
+    const qs = params.toString();
+    startTransition(() => {
+      router.replace(`/catalogo${qs ? `?${qs}` : ""}`, { scroll: false });
+    });
+  }
 
   function clearFilters() {
     setQuery("");
-    setActiveCategory("Todos");
-    setActiveBrand(null);
-    setActiveVehicle(null);
-    setActiveYear(null);
-    setFilterNew(false);
-    setFilterFeatured(false);
+    startTransition(() => {
+      router.replace("/catalogo", { scroll: false });
+    });
+  }
+
+  // ── Client-side text search on top of server-filtered products ─────────────
+
+  const filtered = useMemo(() => {
+    if (!query.trim()) return products;
+    const q = query.toLowerCase();
+    return products.filter(
+      (p) =>
+        p.name.toLowerCase().includes(q) ||
+        p.brand.name.toLowerCase().includes(q) ||
+        p.sku.toLowerCase().includes(q)
+    );
+  }, [products, query]);
+
+  // ── Active filter count (for badges) ──────────────────────────────────────
+
+  const activeFiltersCount = [
+    categoria !== "Todos",
+    brand !== null,
+    vehicleMake !== null,
+    isNew,
+    isFeatured,
+  ].filter(Boolean).length;
+
+  // ── Sidebar sections (reused in desktop + mobile) ─────────────────────────
+
+  function SidebarContent() {
+    return (
+      <>
+        {/* Filtrar por */}
+        <div className="flex flex-col gap-2">
+          <p className="text-zinc-500 text-[10px] font-bold uppercase tracking-widest mb-1">
+            Filtrar por
+          </p>
+          <button
+            onClick={() => pushFilters({ isNew: !isNew })}
+            className={`flex items-center gap-2.5 px-4 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all cursor-pointer ${
+              isNew
+                ? "bg-yellow-500/15 border border-yellow-500/50 text-yellow-400"
+                : "bg-white/[0.03] border border-white/[0.07] text-zinc-500 hover:text-white hover:bg-white/[0.06]"
+            }`}
+          >
+            <Zap size={12} strokeWidth={3} />
+            Nuevo
+          </button>
+          <button
+            onClick={() => pushFilters({ isFeatured: !isFeatured })}
+            className={`flex items-center gap-2.5 px-4 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all cursor-pointer ${
+              isFeatured
+                ? "bg-white/10 border border-white/20 text-zinc-200"
+                : "bg-white/[0.03] border border-white/[0.07] text-zinc-500 hover:text-white hover:bg-white/[0.06]"
+            }`}
+          >
+            <Star size={12} strokeWidth={3} />
+            Destacado
+          </button>
+        </div>
+
+        <div className="h-px bg-white/[0.08]" />
+
+        {/* Categorías */}
+        <div className="flex flex-col gap-1.5">
+          <p className="text-zinc-500 text-[10px] font-bold uppercase tracking-widest mb-1">
+            Categorías
+          </p>
+          <button
+            onClick={() => pushFilters({ categoria: "Todos" })}
+            className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-bold transition-all cursor-pointer text-left ${
+              categoria === "Todos"
+                ? "bg-white/10 border border-yellow-500/50 text-yellow-400"
+                : "text-zinc-500 hover:text-white hover:bg-white/5 border border-transparent"
+            }`}
+          >
+            <div className="w-7 h-7 rounded-full bg-white/5 flex items-center justify-center flex-shrink-0">
+              <LayoutGrid size={12} className="text-zinc-400" />
+            </div>
+            Todos
+          </button>
+          {categories.map((cat) => (
+            <button
+              key={cat.id}
+              onClick={() => pushFilters({ categoria: cat.name })}
+              className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-bold transition-all cursor-pointer text-left ${
+                categoria === cat.name
+                  ? "bg-white/10 border border-yellow-500/50 text-yellow-400"
+                  : "text-zinc-500 hover:text-white hover:bg-white/5 border border-transparent"
+              }`}
+            >
+              <div className="w-7 h-7 rounded-full bg-white/5 border border-white/10 flex items-center justify-center flex-shrink-0 overflow-hidden">
+                {cat.icon ? (
+                  <CategoryIcon
+                    name={cat.icon}
+                    size={13}
+                    className={
+                      categoria === cat.name ? "text-yellow-400" : "text-zinc-500"
+                    }
+                  />
+                ) : cat.imageUrl ? (
+                  <Image
+                    src={cat.imageUrl}
+                    alt={cat.name}
+                    width={28}
+                    height={28}
+                    className="object-contain p-1"
+                    unoptimized
+                  />
+                ) : (
+                  <span className="text-zinc-500 text-[9px] font-black">
+                    {cat.name[0]}
+                  </span>
+                )}
+              </div>
+              {cat.name}
+            </button>
+          ))}
+        </div>
+
+        {/* Vehículos */}
+        {vehicles.length > 0 && (
+          <>
+            <div className="h-px bg-white/[0.08]" />
+            <VehicleCascadeFilter
+              vehicles={vehicles}
+              make={vehicleMake}
+              model={vehicleModel}
+              year={vehicleYear}
+              onChange={(m, mo, y) =>
+                pushFilters({ vehicleMake: m, vehicleModel: mo, vehicleYear: y })
+              }
+            />
+          </>
+        )}
+
+        {/* Clear all */}
+        <AnimatePresence>
+          {activeFiltersCount > 0 && (
+            <motion.button
+              initial={{ opacity: 0, y: 4 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 4 }}
+              onClick={clearFilters}
+              className="flex items-center gap-2 text-zinc-600 hover:text-red-400 text-xs uppercase tracking-widest font-bold transition-colors cursor-pointer"
+            >
+              <X size={12} strokeWidth={2.5} />
+              Limpiar todos los filtros
+            </motion.button>
+          )}
+        </AnimatePresence>
+      </>
+    );
   }
 
   return (
@@ -311,9 +473,6 @@ export default function CatalogoClient({
         backgroundAttachment: "fixed",
       }}
     >
-
-
-      {/* Overlay oscuro sobre el fondo */}
       <div className="fixed inset-0 bg-[#0a0a0a]/50 pointer-events-none z-0" />
 
       {/* ── HEADER ── */}
@@ -341,10 +500,13 @@ export default function CatalogoClient({
       </section>
 
       {/* ── MOBILE STICKY TOP BAR ── */}
-      <div className="lg:hidden sticky top-[72px] z-40 relative bg-[#0a0a0a]/95 backdrop-blur-xl border-b border-white/[0.06] px-4 py-3">
+      <div className="lg:hidden sticky top-[72px] z-40 bg-[#0a0a0a]/95 backdrop-blur-xl border-b border-white/[0.06] px-4 py-3">
         <div className="flex gap-3 items-center">
           <div className="relative flex-1">
-            <Search size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-zinc-500 pointer-events-none" />
+            <Search
+              size={15}
+              className="absolute left-3.5 top-1/2 -translate-y-1/2 text-zinc-500 pointer-events-none"
+            />
             <input
               type="text"
               value={query}
@@ -361,7 +523,11 @@ export default function CatalogoClient({
                 : "bg-white/5 border-white/10 text-zinc-400 hover:border-white/20"
             }`}
           >
-            <SlidersHorizontal size={13} strokeWidth={2.5} />
+            {isPending ? (
+              <Loader2 size={13} className="animate-spin" />
+            ) : (
+              <SlidersHorizontal size={13} strokeWidth={2.5} />
+            )}
             Filtros
             {activeFiltersCount > 0 && (
               <span className="w-4 h-4 rounded-full bg-yellow-500 text-black text-[9px] font-black flex items-center justify-center leading-none">
@@ -375,13 +541,15 @@ export default function CatalogoClient({
       {/* ── BODY ── */}
       <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 py-8 flex gap-8 items-start">
 
-        {/* ── DESKTOP SIDEBAR (Glass Panel) ── */}
+        {/* ── DESKTOP SIDEBAR ── */}
         <aside className="hidden lg:flex sticky top-24 w-64 xl:w-72 flex-shrink-0">
           <div className="w-full bg-white/[0.03] backdrop-blur-xl border border-white/10 rounded-3xl p-6 flex flex-col gap-6">
-
             {/* Search */}
             <div className="relative">
-              <Search size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-zinc-500 pointer-events-none" />
+              <Search
+                size={15}
+                className="absolute left-3.5 top-1/2 -translate-y-1/2 text-zinc-500 pointer-events-none"
+              />
               <input
                 type="text"
                 value={query}
@@ -391,146 +559,75 @@ export default function CatalogoClient({
               />
             </div>
 
-            {/* Filtrar por */}
-            <div className="flex flex-col gap-2">
-              <p className="text-zinc-500 text-[10px] font-bold uppercase tracking-widest mb-1">Filtrar por</p>
-              <button
-                onClick={() => setFilterNew((v) => !v)}
-                className={`flex items-center gap-2.5 px-4 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all cursor-pointer ${
-                  filterNew
-                    ? "bg-yellow-500/15 border border-yellow-500/50 text-yellow-400"
-                    : "bg-white/[0.03] border border-white/[0.07] text-zinc-500 hover:text-white hover:bg-white/[0.06]"
-                }`}
-              >
-                <Zap size={12} strokeWidth={3} />
-                Nuevo
-              </button>
-              <button
-                onClick={() => setFilterFeatured((v) => !v)}
-                className={`flex items-center gap-2.5 px-4 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all cursor-pointer ${
-                  filterFeatured
-                    ? "bg-white/10 border border-white/20 text-zinc-200"
-                    : "bg-white/[0.03] border border-white/[0.07] text-zinc-500 hover:text-white hover:bg-white/[0.06]"
-                }`}
-              >
-                <Star size={12} strokeWidth={3} />
-                Destacado
-              </button>
-            </div>
-
-            <div className="h-px bg-white/[0.08]" />
-
-            {/* Categorías */}
-            <div className="flex flex-col gap-1.5">
-              <p className="text-zinc-500 text-[10px] font-bold uppercase tracking-widest mb-1">Categorías</p>
-              <button
-                onClick={() => setActiveCategory("Todos")}
-                className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-bold transition-all cursor-pointer text-left ${
-                  activeCategory === "Todos"
-                    ? "bg-white/10 border border-yellow-500/50 text-yellow-400"
-                    : "text-zinc-500 hover:text-white hover:bg-white/5 border border-transparent"
-                }`}
-              >
-                <div className="w-7 h-7 rounded-full bg-white/5 flex items-center justify-center flex-shrink-0">
-                  <LayoutGrid size={12} className="text-zinc-400" />
-                </div>
-                Todos
-              </button>
-              {categories.map((cat) => (
-                <button
-                  key={cat.id}
-                  onClick={() => setActiveCategory(cat.name)}
-                  className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-bold transition-all cursor-pointer text-left ${
-                    activeCategory === cat.name
-                      ? "bg-white/10 border border-yellow-500/50 text-yellow-400"
-                      : "text-zinc-500 hover:text-white hover:bg-white/5 border border-transparent"
-                  }`}
-                >
-                  <div className="w-7 h-7 rounded-full bg-white/5 border border-white/10 flex items-center justify-center flex-shrink-0 overflow-hidden">
-                    {cat.icon ? (
-                      <CategoryIcon
-                        name={cat.icon}
-                        size={13}
-                        className={activeCategory === cat.name ? "text-yellow-400" : "text-zinc-500"}
-                      />
-                    ) : cat.imageUrl ? (
-                      <Image src={cat.imageUrl} alt={cat.name} width={28} height={28} className="object-contain p-1" unoptimized />
-                    ) : (
-                      <span className="text-zinc-500 text-[9px] font-black">{cat.name[0]}</span>
-                    )}
-                  </div>
-                  {cat.name}
-                </button>
-              ))}
-            </div>
-
-            {/* Vehículos */}
-            {vehicles.length > 0 && (
-              <>
-                <div className="h-px bg-white/[0.08]" />
-                <VehicleFilter
-                  vehicles={vehicles}
-                  activeVehicle={activeVehicle}
-                  activeYear={activeYear}
-                  onSelect={setActiveVehicle}
-                  onYearChange={setActiveYear}
-                  variant="desktop"
-                />
-              </>
+            {/* Loading indicator */}
+            {isPending && (
+              <div className="flex items-center gap-2 text-zinc-600 text-[10px] uppercase tracking-widest -mt-2">
+                <Loader2 size={10} className="animate-spin" />
+                Actualizando...
+              </div>
             )}
 
-            <AnimatePresence>
-              {activeFiltersCount > 0 && (
-                <motion.button
-                  initial={{ opacity: 0, y: 4 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: 4 }}
-                  onClick={clearFilters}
-                  className="flex items-center gap-2 text-zinc-600 hover:text-red-400 text-xs uppercase tracking-widest font-bold transition-colors cursor-pointer"
-                >
-                  <X size={12} strokeWidth={2.5} />
-                  Limpiar filtros
-                </motion.button>
-              )}
-            </AnimatePresence>
+            <SidebarContent />
           </div>
         </aside>
 
         {/* ── MAIN CONTENT ── */}
-        <div className="flex-1 min-w-0 flex flex-col gap-8">
-
-          {/* ── MARCAS — círculos glass ── */}
+        <div
+          className={`flex-1 min-w-0 flex flex-col gap-8 transition-opacity duration-200 ${
+            isPending ? "opacity-60 pointer-events-none" : ""
+          }`}
+        >
+          {/* Marcas */}
           {brands.length > 0 && (
             <section>
-              <p className="text-zinc-500 text-[10px] font-bold uppercase tracking-widest mb-4">Marcas</p>
+              <p className="text-zinc-500 text-[10px] font-bold uppercase tracking-widest mb-4">
+                Marcas
+              </p>
               <div
                 className="flex flex-row gap-5 overflow-x-auto pb-2"
                 style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
               >
-                {brands.map((brand) => (
+                {brands.map((b) => (
                   <motion.button
-                    key={brand.id}
-                    onClick={() => setActiveBrand(activeBrand === brand.name ? null : brand.name)}
+                    key={b.id}
+                    onClick={() =>
+                      pushFilters({ brand: brand === b.name ? null : b.name })
+                    }
                     whileTap={{ scale: 0.93 }}
                     className="flex flex-col items-center gap-2 cursor-pointer flex-shrink-0"
                   >
                     <div
                       className={`w-16 h-16 rounded-full flex items-center justify-center overflow-hidden relative transition-all duration-200 hover:-translate-y-1 ${
-                        activeBrand === brand.name
+                        brand === b.name
                           ? "bg-yellow-500/10 border-2 border-yellow-500 shadow-[0_0_20px_rgba(234,179,8,0.4)]"
                           : "bg-white/5 border border-white/10 hover:bg-white/10"
                       }`}
                     >
-                      {brand.logoUrl ? (
-                        <Image src={brand.logoUrl} alt={brand.name} width={64} height={64} className="object-contain p-3" unoptimized />
+                      {b.logoUrl ? (
+                        <Image
+                          src={b.logoUrl}
+                          alt={b.name}
+                          width={64}
+                          height={64}
+                          className="object-contain p-3"
+                          unoptimized
+                        />
                       ) : (
-                        <span className={`text-xs font-black uppercase tracking-tight ${activeBrand === brand.name ? "text-yellow-400" : "text-zinc-500"}`}>
-                          {brand.name.slice(0, 3)}
+                        <span
+                          className={`text-xs font-black uppercase tracking-tight ${
+                            brand === b.name ? "text-yellow-400" : "text-zinc-500"
+                          }`}
+                        >
+                          {b.name.slice(0, 3)}
                         </span>
                       )}
                     </div>
-                    <span className={`text-xs font-medium uppercase tracking-wider leading-none transition-colors whitespace-nowrap ${activeBrand === brand.name ? "text-yellow-400" : "text-zinc-400"}`}>
-                      {brand.name}
+                    <span
+                      className={`text-xs font-medium uppercase tracking-wider leading-none transition-colors whitespace-nowrap ${
+                        brand === b.name ? "text-yellow-400" : "text-zinc-400"
+                      }`}
+                    >
+                      {b.name}
                     </span>
                   </motion.button>
                 ))}
@@ -539,13 +636,39 @@ export default function CatalogoClient({
             </section>
           )}
 
+          {/* Active vehicle filter pill */}
+          {vehicleMake && vehicleModel && (
+            <div className="flex items-center gap-2 flex-wrap -mb-4">
+              <span className="flex items-center gap-2 bg-yellow-500/10 border border-yellow-500/30 text-yellow-400 text-xs font-bold px-3 py-1.5 rounded-full">
+                <Car size={11} strokeWidth={2.5} />
+                {vehicleMake} {vehicleModel}
+                {vehicleYear && <span className="opacity-70">· {vehicleYear}</span>}
+                <button
+                  onClick={() =>
+                    pushFilters({ vehicleMake: null, vehicleModel: null, vehicleYear: null })
+                  }
+                  className="ml-1 hover:text-white transition-colors cursor-pointer"
+                >
+                  <X size={10} strokeWidth={2.5} />
+                </button>
+              </span>
+            </div>
+          )}
+
           {/* Contador */}
-          <motion.p layout className="text-zinc-600 text-xs uppercase tracking-widest font-medium -mb-4">
-            {filtered.length} producto{filtered.length !== 1 ? "s" : ""} encontrado{filtered.length !== 1 ? "s" : ""}
+          <motion.p
+            layout
+            className="text-zinc-600 text-xs uppercase tracking-widest font-medium -mb-4"
+          >
+            {filtered.length} producto{filtered.length !== 1 ? "s" : ""}{" "}
+            encontrado{filtered.length !== 1 ? "s" : ""}
           </motion.p>
 
-          {/* ── GRID ── */}
-          <motion.div layout className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
+          {/* Grid */}
+          <motion.div
+            layout
+            className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6"
+          >
             <AnimatePresence mode="popLayout">
               {filtered.length > 0 ? (
                 filtered.map((product, i) => (
@@ -561,10 +684,15 @@ export default function CatalogoClient({
                 >
                   <Search size={40} className="text-zinc-700" />
                   <p className="text-zinc-500 font-semibold uppercase tracking-widest text-sm">
-                    {products.length === 0 ? "No hay productos publicados aún" : "Sin resultados"}
+                    {products.length === 0
+                      ? "No hay productos publicados aún"
+                      : "Sin resultados para este filtro"}
                   </p>
                   {activeFiltersCount > 0 && (
-                    <button onClick={clearFilters} className="text-yellow-500 text-xs uppercase tracking-widest font-bold hover:text-yellow-400 transition-colors cursor-pointer">
+                    <button
+                      onClick={clearFilters}
+                      className="text-yellow-500 text-xs uppercase tracking-widest font-bold hover:text-yellow-400 transition-colors cursor-pointer"
+                    >
                       Limpiar filtros
                     </button>
                   )}
@@ -598,100 +726,26 @@ export default function CatalogoClient({
                 <div className="w-10 h-1 rounded-full bg-white/20" />
               </div>
               <div className="flex items-center justify-between px-5 pt-2 pb-4 flex-shrink-0">
-                <span className="text-white font-black uppercase tracking-widest text-sm">Filtros</span>
-                <button onClick={() => setBottomSheetOpen(false)} className="text-zinc-500 hover:text-white cursor-pointer">
+                <span className="text-white font-black uppercase tracking-widest text-sm flex items-center gap-2">
+                  Filtros
+                  {isPending && <Loader2 size={12} className="animate-spin text-yellow-500" />}
+                </span>
+                <button
+                  onClick={() => setBottomSheetOpen(false)}
+                  className="text-zinc-500 hover:text-white cursor-pointer"
+                >
                   <X size={18} />
                 </button>
               </div>
 
-              <div className="flex-1 overflow-y-auto px-5 pb-4">
-                <p className="text-zinc-500 text-[10px] font-bold uppercase tracking-widest mb-3">Estado</p>
-                <div className="flex gap-3 mb-6">
-                  <button
-                    onClick={() => setFilterNew((v) => !v)}
-                    className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-xl text-xs font-black uppercase tracking-widest transition-all cursor-pointer ${
-                      filterNew
-                        ? "bg-yellow-500/15 border border-yellow-500/50 text-yellow-400"
-                        : "bg-white/5 border border-white/10 text-zinc-500"
-                    }`}
-                  >
-                    <Zap size={12} strokeWidth={3} />
-                    Nuevo
-                  </button>
-                  <button
-                    onClick={() => setFilterFeatured((v) => !v)}
-                    className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-xl text-xs font-black uppercase tracking-widest transition-all cursor-pointer ${
-                      filterFeatured
-                        ? "bg-white/10 border border-white/20 text-zinc-200"
-                        : "bg-white/5 border border-white/10 text-zinc-500"
-                    }`}
-                  >
-                    <Star size={12} strokeWidth={3} />
-                    Destacado
-                  </button>
-                </div>
-
-                {vehicles.length > 0 && (
-                  <div className="mb-6">
-                    <VehicleFilter
-                      vehicles={vehicles}
-                      activeVehicle={activeVehicle}
-                      activeYear={activeYear}
-                      onSelect={setActiveVehicle}
-                      onYearChange={setActiveYear}
-                      variant="mobile"
-                    />
-                  </div>
-                )}
-
-                <p className="text-zinc-500 text-[10px] font-bold uppercase tracking-widest mb-3">Categorías</p>
-                <div className="flex flex-col gap-2">
-                  <button
-                    onClick={() => setActiveCategory("Todos")}
-                    className={`flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold transition-all cursor-pointer text-left ${
-                      activeCategory === "Todos"
-                        ? "bg-white/10 border border-yellow-500/50 text-yellow-400"
-                        : "bg-white/5 border border-white/[0.07] text-zinc-400"
-                    }`}
-                  >
-                    <div className="w-7 h-7 rounded-full bg-white/5 flex items-center justify-center flex-shrink-0">
-                      <LayoutGrid size={12} className="text-zinc-400" />
-                    </div>
-                    Todos
-                  </button>
-                  {categories.map((cat) => (
-                    <button
-                      key={cat.id}
-                      onClick={() => setActiveCategory(cat.name)}
-                      className={`flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold transition-all cursor-pointer text-left ${
-                        activeCategory === cat.name
-                          ? "bg-white/10 border border-yellow-500/50 text-yellow-400"
-                          : "bg-white/5 border border-white/[0.07] text-zinc-400"
-                      }`}
-                    >
-                      <div className="w-7 h-7 rounded-full bg-white/5 border border-white/10 flex items-center justify-center flex-shrink-0 overflow-hidden">
-                        {cat.icon ? (
-                          <CategoryIcon
-                            name={cat.icon}
-                            size={13}
-                            className={activeCategory === cat.name ? "text-yellow-400" : "text-zinc-500"}
-                          />
-                        ) : cat.imageUrl ? (
-                          <Image src={cat.imageUrl} alt={cat.name} width={28} height={28} className="object-contain p-1" unoptimized />
-                        ) : (
-                          <span className="text-zinc-500 text-[9px] font-black">{cat.name[0]}</span>
-                        )}
-                      </div>
-                      {cat.name}
-                    </button>
-                  ))}
-                </div>
+              <div className="flex-1 overflow-y-auto px-5 pb-4 flex flex-col gap-6">
+                <SidebarContent />
               </div>
 
               <div className="flex gap-3 px-5 py-4 border-t border-white/[0.08] flex-shrink-0">
                 {activeFiltersCount > 0 && (
                   <button
-                    onClick={clearFilters}
+                    onClick={() => { clearFilters(); setBottomSheetOpen(false); }}
                     className="flex-1 py-3 rounded-xl border border-white/10 text-zinc-400 text-xs font-black uppercase tracking-widest cursor-pointer hover:border-red-500/40 hover:text-red-400 transition-colors"
                   >
                     Limpiar
@@ -726,11 +780,9 @@ function ProductCard({ product, index }: { product: CatalogProduct; index: numbe
     >
       <Link href={`/catalogo/${product.id}`}>
         <article className="relative bg-white/[0.03] backdrop-blur-md border border-white/[0.08] rounded-2xl p-4 flex flex-col hover:bg-white/[0.06] transition-all hover:border-white/[0.15] overflow-hidden cursor-pointer h-full hover:-translate-y-1 duration-300">
-
-          {/* IMAGE AREA */}
+          {/* IMAGE */}
           <div className="relative aspect-video rounded-xl overflow-hidden bg-[#0d0d0d] flex-shrink-0">
             <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_rgba(234,179,8,0.06)_0%,_transparent_70%)]" />
-
             {product.imageUrl ? (
               <Image
                 src={product.imageUrl}
@@ -744,17 +796,17 @@ function ProductCard({ product, index }: { product: CatalogProduct; index: numbe
                 <ImageOff size={32} className="text-zinc-400" />
               </div>
             )}
-
-            {/* Badges */}
             <div className="absolute top-3 left-3 flex flex-col gap-1.5 z-10">
               {product.isNew && (
                 <span className="flex items-center gap-1 bg-yellow-500 text-black text-[10px] font-black uppercase tracking-widest px-2.5 py-1 rounded-md leading-none shadow-[0_0_16px_rgba(234,179,8,0.5)]">
-                  <Zap size={9} strokeWidth={3} />Nuevo
+                  <Zap size={9} strokeWidth={3} />
+                  Nuevo
                 </span>
               )}
               {product.isFeatured && (
                 <span className="flex items-center gap-1 bg-black/60 backdrop-blur-sm text-white text-[10px] font-black uppercase tracking-widest px-2.5 py-1 rounded-md leading-none">
-                  <Star size={9} strokeWidth={3} />Destacado
+                  <Star size={9} strokeWidth={3} />
+                  Destacado
                 </span>
               )}
             </div>
@@ -768,8 +820,6 @@ function ProductCard({ product, index }: { product: CatalogProduct; index: numbe
             <h3 className="text-lg text-white font-bold leading-tight mt-1 line-clamp-2 flex-1">
               {product.name}
             </h3>
-
-            {/* Price */}
             <div className="mt-4">
               {product.showPrice ? (
                 <p className="text-xl text-yellow-500 font-black leading-none">
@@ -787,7 +837,11 @@ function ProductCard({ product, index }: { product: CatalogProduct; index: numbe
           <div className="mt-4 flex items-center gap-2">
             <div className="flex-1 flex items-center justify-between bg-transparent border border-white/10 group-hover:border-yellow-500/70 text-zinc-300 group-hover:text-white rounded-xl py-2 px-4 transition-all text-sm uppercase tracking-widest font-semibold">
               <span>Ver detalles</span>
-              <ArrowRight size={14} strokeWidth={2.5} className="group-hover:translate-x-1 transition-transform duration-200" />
+              <ArrowRight
+                size={14}
+                strokeWidth={2.5}
+                className="group-hover:translate-x-1 transition-transform duration-200"
+              />
             </div>
             <AddToCartButton
               variant="icon"
@@ -804,7 +858,6 @@ function ProductCard({ product, index }: { product: CatalogProduct; index: numbe
             />
           </div>
 
-          {/* Bottom accent line */}
           <div className="absolute bottom-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-yellow-500/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
         </article>
       </Link>
