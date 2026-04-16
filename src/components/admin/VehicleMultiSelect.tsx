@@ -219,8 +219,24 @@ export default function VehicleMultiSelect({
 
   function handleAdd() {
     if (!canAdd) return;
+
     if (dbMatch) {
-      setEntries((prev) => [...prev, { kind: "existing", id: dbMatch.id }]);
+      const ys = yearStart.length === 4 ? parseInt(yearStart, 10) : null;
+      const ye = yearEnd.length === 4 ? parseInt(yearEnd, 10) : null;
+      const yearsChanged =
+        (ys !== null && ys !== dbMatch.yearStart) ||
+        (ye !== null && ye !== dbMatch.yearEnd);
+
+      if (yearsChanged && ys && ye) {
+        // Usuario ingresó un rango distinto → upsert en el servidor para actualizar años
+        setEntries((prev) => [
+          ...prev,
+          { kind: "new", make: dbMatch.make, model: dbMatch.model, yearStart: ys, yearEnd: ye },
+        ]);
+      } else {
+        // Sin cambio de años → conectar el registro existente tal cual
+        setEntries((prev) => [...prev, { kind: "existing", id: dbMatch.id }]);
+      }
     } else {
       setEntries((prev) => [
         ...prev,
@@ -353,14 +369,28 @@ export default function VehicleMultiSelect({
         </div>
 
         {/* DB match feedback */}
-        {dbMatch && make && model && (
-          <div className="flex items-center gap-2 text-[11px] text-emerald-400 bg-emerald-500/8 border border-emerald-500/20 rounded-lg px-3 py-2">
-            <CheckCircle2 size={13} strokeWidth={2} className="flex-shrink-0" />
-            <span>
-              Encontrado en BD — {vehicleLabel(dbMatch)} · Se usará el registro existente
-            </span>
-          </div>
-        )}
+        {dbMatch && make && model && (() => {
+          const ys = yearStart.length === 4 ? parseInt(yearStart, 10) : null;
+          const ye = yearEnd.length === 4 ? parseInt(yearEnd, 10) : null;
+          const yearsChanged =
+            (ys !== null && ys !== dbMatch.yearStart) ||
+            (ye !== null && ye !== dbMatch.yearEnd);
+
+          return (
+            <div className={`flex items-center gap-2 text-[11px] border rounded-lg px-3 py-2 ${
+              yearsChanged
+                ? "text-yellow-400 bg-yellow-500/8 border-yellow-500/20"
+                : "text-emerald-400 bg-emerald-500/8 border-emerald-500/20"
+            }`}>
+              <CheckCircle2 size={13} strokeWidth={2} className="flex-shrink-0" />
+              <span>
+                {yearsChanged
+                  ? `Encontrado en BD — se actualizará el rango de ${dbMatch.yearStart ?? "?"}–${dbMatch.yearEnd ?? "hoy"} a ${ys}–${ye}`
+                  : `Encontrado en BD — ${vehicleLabel(dbMatch)} · Se usará el registro existente`}
+              </span>
+            </div>
+          );
+        })()}
 
         {/* Row 2: Años — solo requeridos si es nuevo */}
         {(!dbMatch || (make && model)) && (
