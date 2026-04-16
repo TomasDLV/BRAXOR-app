@@ -24,36 +24,45 @@ function parseVehicleString(text: string): ParsedVehicle | null {
   return { make, model: model.trim(), yearStart, yearEnd };
 }
 
-/** Upserts new vehicle strings and returns all resolved IDs. */
+/** Finds or creates vehicle records and returns all resolved IDs. */
 async function resolveVehicleIds(
   existingIds: string[],
   newStrings: string[]
 ): Promise<string[]> {
   if (newStrings.length === 0) return existingIds;
 
-  const upserted = await Promise.all(
+  const resolved = await Promise.all(
     newStrings.map(async (raw) => {
       const parsed = parseVehicleString(raw);
       if (!parsed) return null;
-      const vehicle = await prisma.vehicle.upsert({
-        where: { make_model: { make: parsed.make, model: parsed.model } },
-        create: {
+
+      // Look for exact match (make + model + same year range)
+      const existing = await prisma.vehicle.findFirst({
+        where: {
           make: parsed.make,
           model: parsed.model,
           yearStart: parsed.yearStart,
           yearEnd: parsed.yearEnd,
         },
-        update: {
+        select: { id: true },
+      });
+      if (existing) return existing.id;
+
+      // Create a new record for this year range
+      const created = await prisma.vehicle.create({
+        data: {
+          make: parsed.make,
+          model: parsed.model,
           yearStart: parsed.yearStart,
           yearEnd: parsed.yearEnd,
         },
         select: { id: true },
       });
-      return vehicle.id;
+      return created.id;
     })
   );
 
-  const newIds = upserted.filter((id): id is string => id !== null);
+  const newIds = resolved.filter((id): id is string => id !== null);
   return [...new Set([...existingIds, ...newIds])];
 }
 

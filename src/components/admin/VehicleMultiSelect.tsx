@@ -153,51 +153,61 @@ export default function VehicleMultiSelect({
     ].sort();
   }, [vehicles, make]);
 
-  // Match in DB by make+model
-  const dbMatch = useMemo(() => {
-    if (!make.trim() || !model.trim()) return null;
+  const ysNum = yearStart.length === 4 ? parseInt(yearStart, 10) : null;
+  const yeNum = yearEnd.length === 4 ? parseInt(yearEnd, 10) : null;
+
+  // Exact match in DB: make + model + same year range
+  const exactMatch = useMemo(() => {
+    if (!make.trim() || !model.trim() || ysNum === null || yeNum === null) return null;
     return (
       vehicles.find(
         (v) =>
           v.make.toLowerCase() === make.trim().toLowerCase() &&
-          v.model.toLowerCase() === model.trim().toLowerCase()
+          v.model.toLowerCase() === model.trim().toLowerCase() &&
+          v.yearStart === ysNum &&
+          v.yearEnd === yeNum
       ) ?? null
+    );
+  }, [vehicles, make, model, ysNum, yeNum]);
+
+  // Vehicles with same make+model but different year ranges (for info banner)
+  const sameModelVehicles = useMemo(() => {
+    if (!make.trim() || !model.trim()) return [];
+    return vehicles.filter(
+      (v) =>
+        v.make.toLowerCase() === make.trim().toLowerCase() &&
+        v.model.toLowerCase() === model.trim().toLowerCase()
     );
   }, [vehicles, make, model]);
 
-  // Whether this entry is already in the list
+  // Whether this exact entry (make+model+years) is already in the list
   const alreadyAdded = useMemo(() => {
-    if (!make.trim() || !model.trim()) return false;
+    if (!make.trim() || !model.trim() || ysNum === null || yeNum === null) return false;
     return entries.some((e) => {
       if (e.kind === "existing") {
         const v = vehicles.find((v) => v.id === e.id);
         return (
           v &&
           v.make.toLowerCase() === make.trim().toLowerCase() &&
-          v.model.toLowerCase() === model.trim().toLowerCase()
+          v.model.toLowerCase() === model.trim().toLowerCase() &&
+          v.yearStart === ysNum &&
+          v.yearEnd === yeNum
         );
       }
       return (
         e.make.toLowerCase() === make.trim().toLowerCase() &&
-        e.model.toLowerCase() === model.trim().toLowerCase()
+        e.model.toLowerCase() === model.trim().toLowerCase() &&
+        e.yearStart === ysNum &&
+        e.yearEnd === yeNum
       );
     });
-  }, [entries, make, model, vehicles]);
+  }, [entries, make, model, ysNum, yeNum, vehicles]);
 
   const canAdd = useMemo(() => {
     if (!make.trim() || !model.trim() || alreadyAdded) return false;
-    if (dbMatch) return true; // existing — years optional
-    // new: require valid year range
-    const ys = parseInt(yearStart, 10);
-    const ye = parseInt(yearEnd, 10);
-    return (
-      yearStart.length === 4 &&
-      yearEnd.length === 4 &&
-      !isNaN(ys) &&
-      !isNaN(ye) &&
-      ye >= ys
-    );
-  }, [make, model, dbMatch, yearStart, yearEnd, alreadyAdded]);
+    if (ysNum === null || yeNum === null || isNaN(ysNum) || isNaN(yeNum)) return false;
+    return yeNum >= ysNum;
+  }, [make, model, ysNum, yeNum, alreadyAdded]);
 
   // ── Grouped list for selector panel ──
 
@@ -218,35 +228,16 @@ export default function VehicleMultiSelect({
   // ── Actions ──
 
   function handleAdd() {
-    if (!canAdd) return;
+    if (!canAdd || ysNum === null || yeNum === null) return;
 
-    if (dbMatch) {
-      const ys = yearStart.length === 4 ? parseInt(yearStart, 10) : null;
-      const ye = yearEnd.length === 4 ? parseInt(yearEnd, 10) : null;
-      const yearsChanged =
-        (ys !== null && ys !== dbMatch.yearStart) ||
-        (ye !== null && ye !== dbMatch.yearEnd);
-
-      if (yearsChanged && ys && ye) {
-        // Usuario ingresó un rango distinto → upsert en el servidor para actualizar años
-        setEntries((prev) => [
-          ...prev,
-          { kind: "new", make: dbMatch.make, model: dbMatch.model, yearStart: ys, yearEnd: ye },
-        ]);
-      } else {
-        // Sin cambio de años → conectar el registro existente tal cual
-        setEntries((prev) => [...prev, { kind: "existing", id: dbMatch.id }]);
-      }
+    if (exactMatch) {
+      // Exact same record already in DB → connect it
+      setEntries((prev) => [...prev, { kind: "existing", id: exactMatch.id }]);
     } else {
+      // New record (different year range or brand-new make+model)
       setEntries((prev) => [
         ...prev,
-        {
-          kind: "new",
-          make: make.trim(),
-          model: model.trim(),
-          yearStart: parseInt(yearStart, 10),
-          yearEnd: parseInt(yearEnd, 10),
-        },
+        { kind: "new", make: make.trim(), model: model.trim(), yearStart: ysNum, yearEnd: yeNum },
       ]);
     }
     setMake("");
@@ -369,76 +360,54 @@ export default function VehicleMultiSelect({
         </div>
 
         {/* DB match feedback */}
-        {dbMatch && make && model && (() => {
-          const ys = yearStart.length === 4 ? parseInt(yearStart, 10) : null;
-          const ye = yearEnd.length === 4 ? parseInt(yearEnd, 10) : null;
-          const yearsChanged =
-            (ys !== null && ys !== dbMatch.yearStart) ||
-            (ye !== null && ye !== dbMatch.yearEnd);
-
-          return (
-            <div className={`flex items-center gap-2 text-[11px] border rounded-lg px-3 py-2 ${
-              yearsChanged
-                ? "text-yellow-400 bg-yellow-500/8 border-yellow-500/20"
-                : "text-emerald-400 bg-emerald-500/8 border-emerald-500/20"
-            }`}>
-              <CheckCircle2 size={13} strokeWidth={2} className="flex-shrink-0" />
-              <span>
-                {yearsChanged
-                  ? `Encontrado en BD — se actualizará el rango de ${dbMatch.yearStart ?? "?"}–${dbMatch.yearEnd ?? "hoy"} a ${ys}–${ye}`
-                  : `Encontrado en BD — ${vehicleLabel(dbMatch)} · Se usará el registro existente`}
-              </span>
-            </div>
-          );
-        })()}
-
-        {/* Row 2: Años — solo requeridos si es nuevo */}
-        {(!dbMatch || (make && model)) && (
-          <div className="grid grid-cols-2 gap-3">
-            <div className="flex flex-col gap-1.5">
-              <span className="text-zinc-500 text-[10px] uppercase tracking-widest font-bold">
-                Año desde{" "}
-                {dbMatch ? (
-                  <span className="text-zinc-700 normal-case tracking-normal font-normal">
-                    — opcional
-                  </span>
-                ) : (
-                  <span className="text-yellow-500">*</span>
-                )}
-              </span>
-              <input
-                type="number"
-                value={yearStart}
-                onChange={(e) => setYearStart(e.target.value)}
-                placeholder={dbMatch?.yearStart?.toString() ?? "2018"}
-                min={1990}
-                max={2100}
-                className="bg-[#0d0d0d] border border-zinc-800 focus:border-yellow-500/50 text-white text-xs px-3 py-2.5 rounded-lg focus:outline-none placeholder-zinc-700 transition-colors [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-              />
-            </div>
-            <div className="flex flex-col gap-1.5">
-              <span className="text-zinc-500 text-[10px] uppercase tracking-widest font-bold">
-                Año hasta{" "}
-                {dbMatch ? (
-                  <span className="text-zinc-700 normal-case tracking-normal font-normal">
-                    — opcional
-                  </span>
-                ) : (
-                  <span className="text-yellow-500">*</span>
-                )}
-              </span>
-              <input
-                type="number"
-                value={yearEnd}
-                onChange={(e) => setYearEnd(e.target.value)}
-                placeholder={dbMatch?.yearEnd?.toString() ?? "2023"}
-                min={1990}
-                max={2100}
-                className="bg-[#0d0d0d] border border-zinc-800 focus:border-yellow-500/50 text-white text-xs px-3 py-2.5 rounded-lg focus:outline-none placeholder-zinc-700 transition-colors [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-              />
-            </div>
+        {make && model && exactMatch && (
+          <div className="flex items-center gap-2 text-[11px] border rounded-lg px-3 py-2 text-emerald-400 bg-emerald-500/8 border-emerald-500/20">
+            <CheckCircle2 size={13} strokeWidth={2} className="flex-shrink-0" />
+            <span>Encontrado en BD — {vehicleLabel(exactMatch)} · Se usará el registro existente</span>
           </div>
         )}
+        {make && model && !exactMatch && sameModelVehicles.length > 0 && (
+          <div className="flex items-start gap-2 text-[11px] border rounded-lg px-3 py-2 text-blue-400 bg-blue-500/8 border-blue-500/20">
+            <CheckCircle2 size={13} strokeWidth={2} className="flex-shrink-0 mt-0.5" />
+            <span>
+              {make} {model} ya existe con otros rangos:{" "}
+              {sameModelVehicles.map((v) => `${v.yearStart ?? "?"}–${v.yearEnd ?? "hoy"}`).join(", ")}.
+              {" "}Se creará un nuevo registro para el rango ingresado.
+            </span>
+          </div>
+        )}
+
+        {/* Row 2: Años — siempre requeridos */}
+        <div className="grid grid-cols-2 gap-3">
+          <div className="flex flex-col gap-1.5">
+            <span className="text-zinc-500 text-[10px] uppercase tracking-widest font-bold">
+              Año desde <span className="text-yellow-500">*</span>
+            </span>
+            <input
+              type="number"
+              value={yearStart}
+              onChange={(e) => setYearStart(e.target.value)}
+              placeholder="2018"
+              min={1990}
+              max={2100}
+              className="bg-[#0d0d0d] border border-zinc-800 focus:border-yellow-500/50 text-white text-xs px-3 py-2.5 rounded-lg focus:outline-none placeholder-zinc-700 transition-colors [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+            />
+          </div>
+          <div className="flex flex-col gap-1.5">
+            <span className="text-zinc-500 text-[10px] uppercase tracking-widest font-bold">
+              Año hasta <span className="text-yellow-500">*</span>
+            </span>
+            <input
+              type="number"
+              value={yearEnd}
+              onChange={(e) => setYearEnd(e.target.value)}
+              placeholder="2023"
+              min={1990}
+              max={2100}
+              className="bg-[#0d0d0d] border border-zinc-800 focus:border-yellow-500/50 text-white text-xs px-3 py-2.5 rounded-lg focus:outline-none placeholder-zinc-700 transition-colors [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+            />
+          </div>
+        </div>
 
         {alreadyAdded && make && model && (
           <p className="text-[11px] text-zinc-600 italic">

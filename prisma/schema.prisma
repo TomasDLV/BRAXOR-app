@@ -36,7 +36,7 @@ model Vehicle {
   yearEnd     Int?      
   products    Product[] 
   
-  @@unique([make, model]) 
+  @@unique([make, model, yearStart, yearEnd])
 }
 
 model Product {
