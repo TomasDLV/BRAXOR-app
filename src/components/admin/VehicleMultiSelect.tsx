@@ -13,24 +13,13 @@ type Vehicle = {
 
 type VehicleEntry =
   | { kind: "existing"; id: string }
-  | { kind: "new"; make: string; model: string; yearStart: number; yearEnd: number };
+  | { kind: "new"; make: string; model: string; yearStart: number | null; yearEnd: number | null };
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
 function vehicleLabel(v: Vehicle) {
-  const years =
-    v.yearStart || v.yearEnd
-      ? ` (${v.yearStart ?? "?"}–${v.yearEnd ?? "hoy"})`
-      : "";
-  return `${v.make} ${v.model}${years}`;
-}
-
-function entryRaw(e: VehicleEntry, vehicles: Vehicle[]) {
-  if (e.kind === "existing") {
-    const v = vehicles.find((v) => v.id === e.id);
-    return v ? `${v.make} ${v.model} ${v.yearStart ?? 0}-${v.yearEnd ?? 9999}` : "";
-  }
-  return `${e.make} ${e.model} ${e.yearStart}-${e.yearEnd}`;
+  if (!v.yearStart && !v.yearEnd) return `${v.make} ${v.model} (todos los años)`;
+  return `${v.make} ${v.model} (${v.yearStart ?? "?"}–${v.yearEnd ?? "hoy"})`;
 }
 
 // ─── Autocomplete input ───────────────────────────────────────────────────────
@@ -120,6 +109,7 @@ export default function VehicleMultiSelect({
   const [model, setModel] = useState("");
   const [yearStart, setYearStart] = useState("");
   const [yearEnd, setYearEnd] = useState("");
+  const [allYears, setAllYears] = useState(false);
 
   // Selector panel
   const [selectorOpen, setSelectorOpen] = useState(false);
@@ -156,21 +146,27 @@ export default function VehicleMultiSelect({
   const ysNum = yearStart.length === 4 ? parseInt(yearStart, 10) : null;
   const yeNum = yearEnd.length === 4 ? parseInt(yearEnd, 10) : null;
 
-  // Exact match in DB: make + model + same year range
+  // Exact match in DB: make + model + same year range (or both null when allYears)
   const exactMatch = useMemo(() => {
-    if (!make.trim() || !model.trim() || ysNum === null || yeNum === null) return null;
-    return (
-      vehicles.find(
+    if (!make.trim() || !model.trim()) return null;
+    if (allYears) {
+      return vehicles.find(
         (v) =>
           v.make.toLowerCase() === make.trim().toLowerCase() &&
           v.model.toLowerCase() === model.trim().toLowerCase() &&
-          v.yearStart === ysNum &&
-          v.yearEnd === yeNum
-      ) ?? null
-    );
-  }, [vehicles, make, model, ysNum, yeNum]);
+          v.yearStart === null && v.yearEnd === null
+      ) ?? null;
+    }
+    if (ysNum === null || yeNum === null) return null;
+    return vehicles.find(
+      (v) =>
+        v.make.toLowerCase() === make.trim().toLowerCase() &&
+        v.model.toLowerCase() === model.trim().toLowerCase() &&
+        v.yearStart === ysNum && v.yearEnd === yeNum
+    ) ?? null;
+  }, [vehicles, make, model, ysNum, yeNum, allYears]);
 
-  // Vehicles with same make+model but different year ranges (for info banner)
+  // Vehicles with same make+model (for info banner)
   const sameModelVehicles = useMemo(() => {
     if (!make.trim() || !model.trim()) return [];
     return vehicles.filter(
@@ -180,34 +176,33 @@ export default function VehicleMultiSelect({
     );
   }, [vehicles, make, model]);
 
-  // Whether this exact entry (make+model+years) is already in the list
+  // Whether this exact entry is already in the list
   const alreadyAdded = useMemo(() => {
-    if (!make.trim() || !model.trim() || ysNum === null || yeNum === null) return false;
+    if (!make.trim() || !model.trim()) return false;
     return entries.some((e) => {
+      const makeLow = make.trim().toLowerCase();
+      const modelLow = model.trim().toLowerCase();
       if (e.kind === "existing") {
         const v = vehicles.find((v) => v.id === e.id);
-        return (
-          v &&
-          v.make.toLowerCase() === make.trim().toLowerCase() &&
-          v.model.toLowerCase() === model.trim().toLowerCase() &&
-          v.yearStart === ysNum &&
-          v.yearEnd === yeNum
-        );
+        if (!v) return false;
+        const baseMatch =
+          v.make.toLowerCase() === makeLow && v.model.toLowerCase() === modelLow;
+        if (allYears) return baseMatch && v.yearStart === null && v.yearEnd === null;
+        return baseMatch && v.yearStart === ysNum && v.yearEnd === yeNum;
       }
-      return (
-        e.make.toLowerCase() === make.trim().toLowerCase() &&
-        e.model.toLowerCase() === model.trim().toLowerCase() &&
-        e.yearStart === ysNum &&
-        e.yearEnd === yeNum
-      );
+      const baseMatch =
+        e.make.toLowerCase() === makeLow && e.model.toLowerCase() === modelLow;
+      if (allYears) return baseMatch && e.yearStart === null && e.yearEnd === null;
+      return baseMatch && e.yearStart === ysNum && e.yearEnd === yeNum;
     });
-  }, [entries, make, model, ysNum, yeNum, vehicles]);
+  }, [entries, make, model, ysNum, yeNum, allYears, vehicles]);
 
   const canAdd = useMemo(() => {
     if (!make.trim() || !model.trim() || alreadyAdded) return false;
+    if (allYears) return true;
     if (ysNum === null || yeNum === null || isNaN(ysNum) || isNaN(yeNum)) return false;
     return yeNum >= ysNum;
-  }, [make, model, ysNum, yeNum, alreadyAdded]);
+  }, [make, model, ysNum, yeNum, allYears, alreadyAdded]);
 
   // ── Grouped list for selector panel ──
 
@@ -228,22 +223,27 @@ export default function VehicleMultiSelect({
   // ── Actions ──
 
   function handleAdd() {
-    if (!canAdd || ysNum === null || yeNum === null) return;
+    if (!canAdd) return;
 
     if (exactMatch) {
-      // Exact same record already in DB → connect it
       setEntries((prev) => [...prev, { kind: "existing", id: exactMatch.id }]);
     } else {
-      // New record (different year range or brand-new make+model)
       setEntries((prev) => [
         ...prev,
-        { kind: "new", make: make.trim(), model: model.trim(), yearStart: ysNum, yearEnd: yeNum },
+        {
+          kind: "new",
+          make: make.trim(),
+          model: model.trim(),
+          yearStart: allYears ? null : ysNum,
+          yearEnd: allYears ? null : yeNum,
+        },
       ]);
     }
     setMake("");
     setModel("");
     setYearStart("");
     setYearEnd("");
+    setAllYears(false);
   }
 
   function removeEntry(index: number) {
@@ -267,6 +267,8 @@ export default function VehicleMultiSelect({
       const v = vehicles.find((v) => v.id === entry.id);
       return v ? vehicleLabel(v) : "?";
     }
+    if (entry.yearStart === null || entry.yearEnd === null)
+      return `${entry.make} ${entry.model} (todos los años)`;
     return `${entry.make} ${entry.model} (${entry.yearStart}–${entry.yearEnd})`;
   }
 
@@ -293,7 +295,10 @@ export default function VehicleMultiSelect({
         if (entry.kind === "existing") {
           return <input key={i} type="hidden" name="vehicleId" value={entry.id} />;
         }
-        const raw = `${entry.make} ${entry.model} ${entry.yearStart}-${entry.yearEnd}`;
+        const raw =
+          entry.yearStart !== null && entry.yearEnd !== null
+            ? `${entry.make} ${entry.model} ${entry.yearStart}-${entry.yearEnd}`
+            : `${entry.make} ${entry.model}`;
         return <input key={i} type="hidden" name="vehicleNew" value={raw} />;
       })}
 
@@ -359,6 +364,24 @@ export default function VehicleMultiSelect({
           </div>
         </div>
 
+        {/* Toggle: Todos los años */}
+        {make && model && (
+          <button
+            type="button"
+            onClick={() => { setAllYears((v) => !v); setYearStart(""); setYearEnd(""); }}
+            className={`flex items-center gap-2 text-xs font-bold px-3 py-2 rounded-lg border transition-all cursor-pointer w-fit ${
+              allYears
+                ? "bg-yellow-500/15 border-yellow-500/40 text-yellow-400"
+                : "bg-white/[0.03] border-zinc-800 text-zinc-500 hover:border-zinc-700 hover:text-zinc-400"
+            }`}
+          >
+            <span className={`w-3 h-3 rounded-full border-2 flex-shrink-0 transition-colors ${
+              allYears ? "bg-yellow-500 border-yellow-500" : "border-zinc-600"
+            }`} />
+            Compatible con todos los años
+          </button>
+        )}
+
         {/* DB match feedback */}
         {make && model && exactMatch && (
           <div className="flex items-center gap-2 text-[11px] border rounded-lg px-3 py-2 text-emerald-400 bg-emerald-500/8 border-emerald-500/20">
@@ -377,37 +400,39 @@ export default function VehicleMultiSelect({
           </div>
         )}
 
-        {/* Row 2: Años — siempre requeridos */}
-        <div className="grid grid-cols-2 gap-3">
-          <div className="flex flex-col gap-1.5">
-            <span className="text-zinc-500 text-[10px] uppercase tracking-widest font-bold">
-              Año desde <span className="text-yellow-500">*</span>
-            </span>
-            <input
-              type="number"
-              value={yearStart}
-              onChange={(e) => setYearStart(e.target.value)}
-              placeholder="2018"
-              min={1990}
-              max={2100}
-              className="bg-[#0d0d0d] border border-zinc-800 focus:border-yellow-500/50 text-white text-xs px-3 py-2.5 rounded-lg focus:outline-none placeholder-zinc-700 transition-colors [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-            />
+        {/* Row 2: Años — ocultos si "todos los años" está activo */}
+        {!allYears && (
+          <div className="grid grid-cols-2 gap-3">
+            <div className="flex flex-col gap-1.5">
+              <span className="text-zinc-500 text-[10px] uppercase tracking-widest font-bold">
+                Año desde <span className="text-yellow-500">*</span>
+              </span>
+              <input
+                type="number"
+                value={yearStart}
+                onChange={(e) => setYearStart(e.target.value)}
+                placeholder="2018"
+                min={1990}
+                max={2100}
+                className="bg-[#0d0d0d] border border-zinc-800 focus:border-yellow-500/50 text-white text-xs px-3 py-2.5 rounded-lg focus:outline-none placeholder-zinc-700 transition-colors [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+              />
+            </div>
+            <div className="flex flex-col gap-1.5">
+              <span className="text-zinc-500 text-[10px] uppercase tracking-widest font-bold">
+                Año hasta <span className="text-yellow-500">*</span>
+              </span>
+              <input
+                type="number"
+                value={yearEnd}
+                onChange={(e) => setYearEnd(e.target.value)}
+                placeholder="2023"
+                min={1990}
+                max={2100}
+                className="bg-[#0d0d0d] border border-zinc-800 focus:border-yellow-500/50 text-white text-xs px-3 py-2.5 rounded-lg focus:outline-none placeholder-zinc-700 transition-colors [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+              />
+            </div>
           </div>
-          <div className="flex flex-col gap-1.5">
-            <span className="text-zinc-500 text-[10px] uppercase tracking-widest font-bold">
-              Año hasta <span className="text-yellow-500">*</span>
-            </span>
-            <input
-              type="number"
-              value={yearEnd}
-              onChange={(e) => setYearEnd(e.target.value)}
-              placeholder="2023"
-              min={1990}
-              max={2100}
-              className="bg-[#0d0d0d] border border-zinc-800 focus:border-yellow-500/50 text-white text-xs px-3 py-2.5 rounded-lg focus:outline-none placeholder-zinc-700 transition-colors [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-            />
-          </div>
-        </div>
+        )}
 
         {alreadyAdded && make && model && (
           <p className="text-[11px] text-zinc-600 italic">

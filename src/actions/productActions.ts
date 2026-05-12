@@ -10,18 +10,28 @@ import type { ActionState } from "@/types/actions";
 interface ParsedVehicle {
   make: string;
   model: string;
-  yearStart: number;
-  yearEnd: number;
+  yearStart: number | null;
+  yearEnd: number | null;
 }
 
 function parseVehicleString(text: string): ParsedVehicle | null {
-  const m = text.trim().match(/^(\S+)\s+(.+?)\s+(\d{4})-(\d{4})$/i);
-  if (!m) return null;
-  const [, make, model, ys, ye] = m;
-  const yearStart = parseInt(ys, 10);
-  const yearEnd = parseInt(ye, 10);
-  if (yearEnd < yearStart || yearStart < 1900 || yearEnd > 2100) return null;
-  return { make, model: model.trim(), yearStart, yearEnd };
+  const trimmed = text.trim();
+  // "Toyota Hilux 2006-2020"
+  const withYears = trimmed.match(/^(\S+)\s+(.+?)\s+(\d{4})-(\d{4})$/i);
+  if (withYears) {
+    const [, make, model, ys, ye] = withYears;
+    const yearStart = parseInt(ys, 10);
+    const yearEnd = parseInt(ye, 10);
+    if (yearEnd < yearStart || yearStart < 1900 || yearEnd > 2100) return null;
+    return { make, model: model.trim(), yearStart, yearEnd };
+  }
+  // "Toyota Hilux" → todos los años
+  const noYears = trimmed.match(/^(\S+)\s+(.+)$/i);
+  if (noYears) {
+    const [, make, model] = noYears;
+    return { make, model: model.trim(), yearStart: null, yearEnd: null };
+  }
+  return null;
 }
 
 /** Finds or creates vehicle records and returns all resolved IDs. */
